@@ -572,13 +572,13 @@
       "languageVersion": "2.19"
     },
     {
-      "name": "week6",
+      "name": "Cynk",
       "rootUri": "../",
       "packageUri": "lib/",
       "languageVersion": "3.5"
     }
   ],
-  "generated": "2024-12-19T19:04:26.484401Z",
+  "generated": "2024-12-21T23:28:26.982134Z",
   "generator": "pub",
   "generatorVersion": "3.5.3",
   "flutterRoot": "file:///home/kasrow12/flutter-sdk/flutter",
