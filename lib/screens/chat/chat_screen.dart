@@ -1,8 +1,10 @@
 import 'package:Cynk/data/message.dart';
 import 'package:Cynk/data/user.dart';
+import 'package:Cynk/features/auth/auth_cubit.dart';
 import 'package:Cynk/screens/chat/date_separator.dart';
 import 'package:Cynk/screens/chat/message_tile.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class ChatPage extends StatelessWidget {
@@ -61,8 +63,8 @@ class ChatPage extends StatelessWidget {
             itemBuilder: (context) {
               return [
                 PopupMenuItem(
-                  value: () => debugPrint('Item 1 hit'),
-                  child: const Text('Item 1'),
+                  value: () => context.read<AuthCubit>().signOut(),
+                  child: const Text('Logout'),
                 ),
                 PopupMenuItem(
                   value: () => debugPrint('Item 2 hit'),

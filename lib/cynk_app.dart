@@ -1,9 +1,10 @@
 import 'package:Cynk/data/message.dart';
-import 'package:Cynk/data/user.dart' as user;
+import 'package:Cynk/features/auth/auth_cubit.dart';
+import 'package:Cynk/features/auth/auth_gate.dart';
 import 'package:Cynk/features/auth/auth_service.dart';
-import 'package:Cynk/screens/chat/chat_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 
 class CynkApp extends StatelessWidget {
@@ -14,18 +15,17 @@ class CynkApp extends StatelessWidget {
     return MultiProvider(
       providers: [
         Provider(
-          create: (context) => AuthService(firebase: FirebaseAuth.instance),
-        )
-      ],
-      child: ChatPage(
-        user: user.User(
-          id: 'aaaa',
-          name: 'Kacper Szafrański',
-          photoUrl: 'https://avatars.githubusercontent.com/u/37282077?v=4',
-          lastSeen: DateTime.now().subtract(Duration(minutes: 34)),
+          create: (context) => AuthService(
+            firebase: FirebaseAuth.instance,
+          ),
         ),
-        messages: aaaamessages(),
-      ),
+        BlocProvider(
+          create: (context) => AuthCubit(
+            authService: context.read(),
+          ),
+        ),
+      ],
+      child: AuthGate(),
     );
   }
 }

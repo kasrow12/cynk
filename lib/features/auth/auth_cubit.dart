@@ -15,6 +15,29 @@ class AuthCubit extends Cubit<AuthState> {
   final AuthService authService;
   StreamSubscription<bool>? _authStateSubscription;
 
+  Future<void> signInWithGoogle() async {
+    emit(SigningInState());
+
+    try {
+      final result = await authService.signInWithGoogle();
+
+      switch (result) {
+        case SignInResult.success:
+          emit(authService.stateFromAuth);
+          break;
+        case SignInResult.networkError:
+          emit(SignedOutState(error: 'Network error'));
+          break;
+        case SignInResult.userNotFound:
+        case SignInResult.wrongPassword:
+          emit(SignedOutState(error: 'Other error'));
+          break;
+      }
+    } catch (e) {
+      emit(SignedOutState(error: 'Error: $e'));
+    }
+  }
+
   Future<void> signInWithEmail(
       {required String email, required String password}) async {
     emit(SigningInState());

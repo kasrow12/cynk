@@ -1,4 +1,5 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 
 enum SignInResult {
   success,
@@ -65,5 +66,36 @@ class AuthService {
           return SignUpResult.networkError;
       }
     }
+  }
+
+  Future<SignInResult> signInWithGoogle() async {
+    final GoogleSignInAccount? googleUser = await GoogleSignIn(
+      clientId:
+          "410051796583-knb1m6u2jdt4h979skrtu7892a38foac.apps.googleusercontent.com",
+    ).signIn();
+
+    final GoogleSignInAuthentication? googleAuth =
+        await googleUser?.authentication;
+
+    final credential = GoogleAuthProvider.credential(
+      accessToken: googleAuth?.accessToken,
+      idToken: googleAuth?.idToken,
+    );
+
+    await firebase.signInWithCredential(credential);
+
+    return SignInResult.success;
+
+    // try {
+    //   final googleProvider = GoogleAuthProvider();
+    //   googleProvider.addScope('email');
+    //   googleProvider.addScope('profile');
+
+    //   await firebase.signInWithPopup(googleProvider);
+
+    //   return SignInResult.success;
+    // } on FirebaseAuthException {
+    //   return SignInResult.networkError;
+    // }
   }
 }
