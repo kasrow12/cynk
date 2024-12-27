@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "410051796583",
+    "project_id": "cynk-app",
+    "storage_bucket": "cynk-app.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:410051796583:android:44a894c813de073c02fec2",
+        "android_client_info": {
+          "package_name": "com.soszynski.cynk"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "410051796583-knb1m6u2jdt4h979skrtu7892a38foac.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDGoMe_nGlVRla2IoXIcLNu2LSmmhmmGbs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "410051796583-knb1m6u2jdt4h979skrtu7892a38foac.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "410051796583-kg9f0annbiurkmp3ms86aeldt7sp1ktr.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.example.cynk"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

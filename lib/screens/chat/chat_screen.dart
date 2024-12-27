@@ -1,0 +1,155 @@
+import 'package:Cynk/data/message.dart';
+import 'package:Cynk/data/user.dart';
+import 'package:Cynk/screens/chat/date_separator.dart';
+import 'package:Cynk/screens/chat/message_tile.dart';
+import 'package:flutter/material.dart';
+import 'package:timeago/timeago.dart' as timeago;
+
+class ChatPage extends StatelessWidget {
+  const ChatPage({
+    required this.user,
+    required this.messages,
+    super.key,
+  });
+
+  final User user;
+  final List<Message> messages;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.grey[400],
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () {
+            print('Back button pressed');
+          },
+        ),
+        title: Row(
+          children: [
+            CircleAvatar(
+              radius: 20,
+              backgroundImage: NetworkImage(user.photoUrl),
+            ),
+            const SizedBox(width: 12),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  user.name,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    height: 1,
+                  ),
+                ),
+                const SizedBox(height: 3),
+                Text(
+                  'widziano ${timeago.format(user.lastSeen, locale: 'pl')}',
+                  style: const TextStyle(
+                    fontSize: 12,
+                    height: 1,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+        actions: [
+          PopupMenuButton<void Function()>(
+            itemBuilder: (context) {
+              return [
+                PopupMenuItem(
+                  value: () => debugPrint('Item 1 hit'),
+                  child: const Text('Item 1'),
+                ),
+                PopupMenuItem(
+                  value: () => debugPrint('Item 2 hit'),
+                  child: const Text('Item 2'),
+                ),
+              ];
+            },
+            onSelected: (fn) => fn(),
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          // List of messages
+          Expanded(
+            child: ListView.separated(
+              reverse: true,
+              // shrinkWrap: true,
+              padding: const EdgeInsets.symmetric(horizontal: 10),
+              itemCount: messages.length + 1, // +1 for the first message date
+              itemBuilder: (context, index) {
+                // Allows for the date separator before the first message
+                if (index >= messages.length) {
+                  return const SizedBox(height: 0);
+                }
+
+                return MessageTile(message: messages[index]);
+              },
+              separatorBuilder: (context, index) {
+                if (index + 1 >= messages.length) {
+                  return DateSeparator(date: messages[index].time);
+                }
+
+                final current = messages[index];
+                final prev = messages[index + 1];
+
+                // Show date separator if the previous message was sent on a different day
+                if (prev.time.year != current.time.year ||
+                    prev.time.month != current.time.month ||
+                    prev.time.day != current.time.day) {
+                  return DateSeparator(date: current.time);
+                }
+
+                if (prev.isSentByUser == current.isSentByUser &&
+                    current.time.difference(prev.time).inMinutes < 5) {
+                  return const SizedBox(height: 3);
+                } else {
+                  return const SizedBox(height: 8);
+                }
+
+                return Text(index.toString());
+              },
+            ),
+          ),
+
+          // Input box
+          Padding(
+            padding: const EdgeInsets.all(10),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    decoration: InputDecoration(
+                      hintText: 'Message',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 15,
+                        vertical: 10,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                IconButton(
+                  icon: const Icon(Icons.send),
+                  color: Colors.black,
+                  onPressed: () {
+                    // Add send message logic here
+                  },
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}

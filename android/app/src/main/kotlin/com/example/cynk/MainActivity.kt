@@ -1,4 +1,4 @@
-package com.example.cynk
+package com.soszynski.cynk
 
 import io.flutter.embedding.android.FlutterActivity
 
