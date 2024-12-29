@@ -9,15 +9,10 @@ class FirestoreDataSource {
   final FirebaseFirestore db;
   final FirebaseAuth auth;
 
-  Future<List<Message>> getChat(String userId) async {
-    final chat = await db
-        .collection('chats')
-        .where('users', arrayContains: userId)
-        .get()
-        .then((value) => value.docs);
+  Future<List<Message>> getChat(String chatId) async {
+    final chat = await db.collection('chats').doc(chatId).get();
 
-    final msgs = await chat[0]
-        .reference
+    final msgs = await chat.reference
         .collection('messages')
         .get()
         .then((value) => value.docs)
@@ -25,7 +20,7 @@ class FirestoreDataSource {
             .map((doc) => Message(
                   message: doc['text'],
                   time: doc['date'].toDate(),
-                  isSentByUser: doc['sender'] == userId,
+                  isSentByUser: doc['sender'] == chatId,
                 ))
             .toList());
 

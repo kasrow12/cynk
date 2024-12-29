@@ -12,7 +12,7 @@ class AuthGate extends StatelessWidget {
     return BlocBuilder<AuthCubit, AuthState>(
       builder: (context, state) {
         return switch (state) {
-          SignedInState(:final user) => ChatPage(
+          SignedInState(:final user) => ChatScreen(
               user: User(
                 id: user.uid,
                 name: user.displayName ?? 'brak',
@@ -20,7 +20,7 @@ class AuthGate extends StatelessWidget {
                     'https://cdn.pixabay.com/photo/2019/08/11/18/59/icon-4399701_1280.png',
                 lastSeen: DateTime.now().subtract(Duration(minutes: 34)),
               ),
-              messages: aaaamessages(),
+              chatId: 'a810uxkTnV1E6jkofYYy',
             ),
           SigningInState() || SignedOutState() => const LoginScreen(),
         };
