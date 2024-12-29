@@ -1,7 +1,10 @@
-import 'package:Cynk/data/message.dart';
+import 'package:Cynk/features/data/firestore_data_source.dart';
+import 'package:Cynk/features/data/message.dart';
 import 'package:Cynk/features/auth/auth_cubit.dart';
 import 'package:Cynk/features/auth/auth_gate.dart';
 import 'package:Cynk/features/auth/auth_service.dart';
+import 'package:Cynk/features/data/messages_cubit.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -22,6 +25,17 @@ class CynkApp extends StatelessWidget {
         BlocProvider(
           create: (context) => AuthCubit(
             authService: context.read(),
+          ),
+        ),
+        Provider(
+          create: (context) => FirestoreDataSource(
+            db: FirebaseFirestore.instance,
+            auth: FirebaseAuth.instance,
+          ),
+        ),
+        BlocProvider(
+          create: (context) => MessagesCubit(
+            dataSource: context.read(),
           ),
         ),
       ],

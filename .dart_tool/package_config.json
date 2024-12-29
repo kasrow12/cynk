@@ -140,6 +140,24 @@
       "languageVersion": "2.12"
     },
     {
+      "name": "cloud_firestore",
+      "rootUri": "file:///home/kasrow12/.pub-cache/hosted/pub.dev/cloud_firestore-5.6.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.2"
+    },
+    {
+      "name": "cloud_firestore_platform_interface",
+      "rootUri": "file:///home/kasrow12/.pub-cache/hosted/pub.dev/cloud_firestore_platform_interface-6.6.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.2"
+    },
+    {
+      "name": "cloud_firestore_web",
+      "rootUri": "file:///home/kasrow12/.pub-cache/hosted/pub.dev/cloud_firestore_web-4.4.0",
+      "packageUri": "lib/",
+      "languageVersion": "3.4"
+    },
+    {
       "name": "code_builder",
       "rootUri": "file:///home/kasrow12/.pub-cache/hosted/pub.dev/code_builder-4.10.1",
       "packageUri": "lib/",
@@ -680,7 +698,7 @@
       "languageVersion": "3.6"
     }
   ],
-  "generated": "2024-12-27T15:45:02.840468Z",
+  "generated": "2024-12-28T22:38:28.553764Z",
   "generator": "pub",
   "generatorVersion": "3.6.0",
   "flutterRoot": "file:///home/kasrow12/flutter-sdk/flutter",

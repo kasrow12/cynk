@@ -1,5 +1,5 @@
 import 'package:Cynk/cynk_app.dart';
-import 'package:Cynk/data/user.dart';
+import 'package:Cynk/features/data/user.dart';
 import 'package:Cynk/features/auth/auth_cubit.dart';
 import 'package:Cynk/screens/chat/chat_screen.dart';
 import 'package:Cynk/screens/login/login_screen.dart';
@@ -12,12 +12,12 @@ class AuthGate extends StatelessWidget {
     return BlocBuilder<AuthCubit, AuthState>(
       builder: (context, state) {
         return switch (state) {
-          SignedInState() => ChatPage(
+          SignedInState(:final user) => ChatPage(
               user: User(
-                id: 'aaaa',
-                name: 'Kacper Szafrański',
-                photoUrl:
-                    'https://avatars.githubusercontent.com/u/37282077?v=4',
+                id: user.uid,
+                name: user.displayName ?? 'brak',
+                photoUrl: user.photoURL ??
+                    'https://cdn.pixabay.com/photo/2019/08/11/18/59/icon-4399701_1280.png',
                 lastSeen: DateTime.now().subtract(Duration(minutes: 34)),
               ),
               messages: aaaamessages(),

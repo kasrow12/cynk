@@ -3,6 +3,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 
 enum SignInResult {
   success,
+  invalidEmail,
   userNotFound,
   wrongPassword,
   networkError,
@@ -39,6 +40,8 @@ class AuthService {
       return SignInResult.success;
     } on FirebaseAuthException catch (e) {
       switch (e.code) {
+        case 'invalid-email':
+          return SignInResult.invalidEmail;
         case 'user-not-found':
           return SignInResult.userNotFound;
         case 'wrong-password':

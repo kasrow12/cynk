@@ -30,6 +30,7 @@ class AuthCubit extends Cubit<AuthState> {
           break;
         case SignInResult.userNotFound:
         case SignInResult.wrongPassword:
+        case SignInResult.invalidEmail:
           emit(SignedOutState(error: 'Other error'));
           break;
       }
@@ -51,6 +52,9 @@ class AuthCubit extends Cubit<AuthState> {
       switch (result) {
         case SignInResult.success:
           emit(authService.stateFromAuth);
+          break;
+        case SignInResult.invalidEmail:
+          emit(SignedOutState(error: 'Invalid email'));
           break;
         case SignInResult.userNotFound:
           emit(SignedOutState(error: 'User not found'));
