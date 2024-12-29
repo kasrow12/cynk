@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:Cynk/features/auth/auth_service.dart';
+import 'package:cynk/features/auth/auth_service.dart';
 import 'package:equatable/equatable.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';

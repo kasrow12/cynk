@@ -1,25 +1,37 @@
-import 'package:Cynk/features/data/firestore_data_source.dart';
-import 'package:Cynk/features/data/message.dart';
+import 'dart:async';
+
+import 'package:cynk/features/data/firestore_data_source.dart';
+import 'package:cynk/features/data/message.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class MessagesCubit extends Cubit<MessagesState> {
   MessagesCubit({required this.dataSource}) : super(MessagesLoading()) {
-    loadMessages('akrv170TpAgrEO4cvo35VZg76i42'); // wrzucić w chat_screen.dart
+    _messagesSubscription =
+        dataSource.getChatStream('a810uxkTnV1E6jkofYYy').listen((messages) {
+      print('Messages: ${messages.length}');
+      emit(MessagesLoaded(messages));
+    });
   }
 
   final FirestoreDataSource dataSource;
+  StreamSubscription<List<Message>>? _messagesSubscription;
 
   Future<void> loadMessages(String chatId) async {
     emit(MessagesLoading());
 
     try {
       final messages = await dataSource.getChat(chatId);
-      // final messages = await dataSource.getChat('akrv170TpAgrEO4cvo35VZg76i42');
 
       emit(MessagesLoaded(messages));
     } catch (e) {
       emit(MessagesError(e.toString()));
     }
+  }
+
+  @override
+  Future<void> close() {
+    _messagesSubscription?.cancel();
+    return super.close();
   }
 }
 

@@ -1,9 +1,9 @@
-import 'package:Cynk/features/data/firestore_data_source.dart';
-import 'package:Cynk/features/data/message.dart';
-import 'package:Cynk/features/auth/auth_cubit.dart';
-import 'package:Cynk/features/auth/auth_gate.dart';
-import 'package:Cynk/features/auth/auth_service.dart';
-import 'package:Cynk/features/data/messages_cubit.dart';
+import 'package:cynk/features/data/firestore_data_source.dart';
+import 'package:cynk/features/data/message.dart';
+import 'package:cynk/features/auth/auth_cubit.dart';
+import 'package:cynk/features/auth/auth_gate.dart';
+import 'package:cynk/features/auth/auth_service.dart';
+import 'package:cynk/features/data/messages_cubit.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';

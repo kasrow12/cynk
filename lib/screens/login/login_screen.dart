@@ -1,5 +1,5 @@
 // login screen
-import 'package:Cynk/features/auth/auth_cubit.dart';
+import 'package:cynk/features/auth/auth_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

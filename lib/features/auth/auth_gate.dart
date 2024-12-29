@@ -1,8 +1,8 @@
-import 'package:Cynk/cynk_app.dart';
-import 'package:Cynk/features/data/user.dart';
-import 'package:Cynk/features/auth/auth_cubit.dart';
-import 'package:Cynk/screens/chat/chat_screen.dart';
-import 'package:Cynk/screens/login/login_screen.dart';
+import 'package:cynk/cynk_app.dart';
+import 'package:cynk/features/data/user.dart';
+import 'package:cynk/features/auth/auth_cubit.dart';
+import 'package:cynk/screens/chat/chat_screen.dart';
+import 'package:cynk/screens/login/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 

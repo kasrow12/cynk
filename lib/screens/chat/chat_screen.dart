@@ -1,17 +1,17 @@
-import 'package:Cynk/features/auth/auth_service.dart';
-import 'package:Cynk/features/data/firestore_data_source.dart';
-import 'package:Cynk/features/data/message.dart';
-import 'package:Cynk/features/data/messages_cubit.dart';
-import 'package:Cynk/features/data/user.dart';
-import 'package:Cynk/features/auth/auth_cubit.dart';
-import 'package:Cynk/screens/chat/date_separator.dart';
-import 'package:Cynk/screens/chat/message_tile.dart';
+import 'package:cynk/features/auth/auth_service.dart';
+import 'package:cynk/features/data/firestore_data_source.dart';
+import 'package:cynk/features/data/message.dart';
+import 'package:cynk/features/data/messages_cubit.dart';
+import 'package:cynk/features/data/user.dart';
+import 'package:cynk/features/auth/auth_cubit.dart';
+import 'package:cynk/screens/chat/date_separator.dart';
+import 'package:cynk/screens/chat/message_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class ChatScreen extends StatelessWidget {
-  const ChatScreen({
+  ChatScreen({
     required this.user,
     required this.chatId,
     super.key,
@@ -19,6 +19,9 @@ class ChatScreen extends StatelessWidget {
 
   final User user;
   final String chatId;
+
+  final TextEditingController _messageController = TextEditingController();
+  final FocusNode _messageFocusNode = FocusNode();
 
   @override
   Widget build(BuildContext context) {
@@ -114,6 +117,10 @@ class ChatScreen extends StatelessWidget {
                 children: [
                   Expanded(
                     child: TextField(
+                      // TODO: shift-enter doesnt work on web
+                      // keyboardType: TextInputType.multiline,
+                      // maxLines: null,
+
                       decoration: InputDecoration(
                         hintText: 'Message',
                         border: OutlineInputBorder(
@@ -124,6 +131,13 @@ class ChatScreen extends StatelessWidget {
                           vertical: 10,
                         ),
                       ),
+                      controller: _messageController,
+                      onSubmitted: (value) {
+                        context
+                            .read<FirestoreDataSource>()
+                            .sendMessage('akrv170TpAgrEO4cvo35VZg76i42', value);
+                        _messageController.clear();
+                      },
                     ),
                   ),
                   const SizedBox(width: 10),
@@ -132,7 +146,9 @@ class ChatScreen extends StatelessWidget {
                     color: Colors.black,
                     onPressed: () {
                       context.read<FirestoreDataSource>().sendMessage(
-                          'akrv170TpAgrEO4cvo35VZg76i42', 'Hello!');
+                          'akrv170TpAgrEO4cvo35VZg76i42',
+                          _messageController.text);
+                      _messageController.clear();
                     },
                   ),
                 ],

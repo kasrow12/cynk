@@ -1,5 +1,5 @@
-import 'package:Cynk/features/data/message.dart';
-import 'package:Cynk/features/data/user.dart';
+import 'package:cynk/features/data/message.dart';
+import 'package:cynk/features/data/user.dart';
 
 class Chat {
   const Chat({

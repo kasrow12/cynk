@@ -1,4 +1,4 @@
-name: Cynk
+name: cynk
 
 environment:
   sdk: 3.6.0

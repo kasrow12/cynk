@@ -1,5 +1,5 @@
-import 'package:Cynk/features/data/chat.dart';
-import 'package:Cynk/features/data/message.dart';
+import 'package:cynk/features/data/chat.dart';
+import 'package:cynk/features/data/message.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
@@ -9,18 +9,35 @@ class FirestoreDataSource {
   final FirebaseFirestore db;
   final FirebaseAuth auth;
 
+  Stream<List<Message>> getChatStream(String chatId) {
+    return db
+        .collection('chats')
+        .doc(chatId)
+        .collection('messages')
+        .orderBy('date', descending: true)
+        .snapshots()
+        .map((snapshot) => snapshot.docs
+            .map((doc) => Message(
+                  message: doc['text'],
+                  time: doc['date'].toDate(),
+                  isSentByUser: true,
+                ))
+            .toList());
+  }
+
   Future<List<Message>> getChat(String chatId) async {
     final chat = await db.collection('chats').doc(chatId).get();
 
     final msgs = await chat.reference
         .collection('messages')
+        .orderBy('date', descending: true)
         .get()
         .then((value) => value.docs)
         .then((value) => value
             .map((doc) => Message(
                   message: doc['text'],
                   time: doc['date'].toDate(),
-                  isSentByUser: doc['sender'] == chatId,
+                  isSentByUser: true,
                 ))
             .toList());
 

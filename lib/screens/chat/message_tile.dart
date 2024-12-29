@@ -1,4 +1,4 @@
-import 'package:Cynk/features/data/message.dart';
+import 'package:cynk/features/data/message.dart';
 import 'package:flutter/material.dart';
 
 class MessageTile extends StatelessWidget {

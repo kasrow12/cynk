@@ -1,6 +1,6 @@
-import 'package:Cynk/cynk_app.dart';
-import 'package:Cynk/firebase_options.dart';
-import 'package:Cynk/pl_messages.dart';
+import 'package:cynk/cynk_app.dart';
+import 'package:cynk/firebase_options.dart';
+import 'package:cynk/pl_messages.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:timeago/timeago.dart' as timeago;

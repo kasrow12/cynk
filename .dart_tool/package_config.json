@@ -692,13 +692,13 @@
       "languageVersion": "3.4"
     },
     {
-      "name": "Cynk",
+      "name": "cynk",
       "rootUri": "../",
       "packageUri": "lib/",
       "languageVersion": "3.6"
     }
   ],
-  "generated": "2024-12-28T22:38:28.553764Z",
+  "generated": "2024-12-29T17:35:32.923733Z",
   "generator": "pub",
   "generatorVersion": "3.6.0",
   "flutterRoot": "file:///home/kasrow12/flutter-sdk/flutter",
