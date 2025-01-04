@@ -1,14 +1,15 @@
 import 'package:cynk/features/data/message.dart';
-import 'package:cynk/features/data/user.dart';
 
 class Chat {
   const Chat({
-    required this.user,
+    required this.id,
     required this.name,
-    required this.messages,
+    required this.photoUrl,
+    required this.lastMessage,
   });
 
-  final User user;
+  final String id;
   final String name;
-  final List<Message> messages;
+  final String photoUrl;
+  final Message lastMessage;
 }

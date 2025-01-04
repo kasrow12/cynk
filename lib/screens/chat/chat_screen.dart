@@ -28,7 +28,8 @@ class ChatScreen extends StatelessWidget {
     return BlocProvider(
       create: (context) => MessagesCubit(
         dataSource: context.read(),
-      )..loadMessages(chatId),
+        userId: user.id,
+      )..openChat(chatId),
       child: Scaffold(
         appBar: AppBar(
           backgroundColor: Colors.grey[400],
@@ -79,8 +80,6 @@ class ChatScreen extends StatelessWidget {
                   PopupMenuItem(
                     value: () {
                       debugPrint('Item 2 hit');
-                      context.read<FirestoreDataSource>().getChat(
-                          context.read<AuthService>().currentUser!.uid);
                     },
                     child: const Text('Item 2'),
                   ),
@@ -101,6 +100,7 @@ class ChatScreen extends StatelessWidget {
                       child: CircularProgressIndicator(),
                     ),
                   MessagesLoaded(:final messages) => ChatMessages(
+                      user: user,
                       messages: messages,
                     ),
                   MessagesError(:final error) => Center(
@@ -135,7 +135,7 @@ class ChatScreen extends StatelessWidget {
                       onSubmitted: (value) {
                         context
                             .read<FirestoreDataSource>()
-                            .sendMessage('akrv170TpAgrEO4cvo35VZg76i42', value);
+                            .sendMessage(chatId, user.id, value);
                         _messageController.clear();
                       },
                     ),
@@ -146,8 +146,7 @@ class ChatScreen extends StatelessWidget {
                     color: Colors.black,
                     onPressed: () {
                       context.read<FirestoreDataSource>().sendMessage(
-                          'akrv170TpAgrEO4cvo35VZg76i42',
-                          _messageController.text);
+                          chatId, user.id, _messageController.text);
                       _messageController.clear();
                     },
                   ),
@@ -164,9 +163,11 @@ class ChatScreen extends StatelessWidget {
 class ChatMessages extends StatelessWidget {
   const ChatMessages({
     super.key,
+    required this.user,
     required this.messages,
   });
 
+  final User user;
   final List<Message> messages;
 
   @override
@@ -200,7 +201,7 @@ class ChatMessages extends StatelessWidget {
         }
 
         if (prev.isSentByUser == current.isSentByUser &&
-            current.time.difference(prev.time).inMinutes < 5) {
+            current.time.difference(prev.time).inMinutes < 10) {
           return const SizedBox(height: 3);
         } else {
           return const SizedBox(height: 8);

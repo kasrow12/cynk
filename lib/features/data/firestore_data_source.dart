@@ -1,65 +1,65 @@
-import 'package:cynk/features/data/chat.dart';
 import 'package:cynk/features/data/message.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 
 class FirestoreDataSource {
-  FirestoreDataSource({required this.db, required this.auth});
+  FirestoreDataSource({required this.db});
 
   final FirebaseFirestore db;
-  final FirebaseAuth auth;
 
-  Stream<List<Message>> getChatStream(String chatId) {
+  Stream<List<Message>> getChatStream(String chatId, String userId) {
     return db
         .collection('chats')
         .doc(chatId)
         .collection('messages')
         .orderBy('date', descending: true)
         .snapshots()
-        .map((snapshot) => snapshot.docs
-            .map((doc) => Message(
-                  message: doc['text'],
-                  time: doc['date'].toDate(),
-                  isSentByUser: true,
-                ))
-            .toList());
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => Message(
+                    message: doc['text'],
+                    time: doc['date'].toDate(),
+                    sender: doc['sender'],
+                    isSentByUser: doc['sender'] == userId,
+                  ))
+              .toList(),
+        );
   }
 
-  Future<List<Message>> getChat(String chatId) async {
-    final chat = await db.collection('chats').doc(chatId).get();
-
-    final msgs = await chat.reference
-        .collection('messages')
-        .orderBy('date', descending: true)
-        .get()
-        .then((value) => value.docs)
-        .then((value) => value
-            .map((doc) => Message(
-                  message: doc['text'],
-                  time: doc['date'].toDate(),
-                  isSentByUser: true,
-                ))
-            .toList());
-
-    return msgs;
-  }
-
-  Future<void> sendMessage(String userId, String message) async {
-    final chat = await db
-        .collection('chats')
-        .where('users', arrayContains: userId)
-        .get()
-        .then((value) => value.docs);
-
-    final chatRef = chat[0].reference.collection('messages');
-
-    await chatRef.add({
-      'text': message,
-      'date': DateTime.now(),
+  Future<void> sendMessage(String chatId, String userId, String message) async {
+    final date = DateTime.now();
+    await db.collection('chats').doc(chatId).collection('messages').add({
       'sender': userId,
+      'text': message,
+      'date': date,
+    });
+
+    await db.collection('chats').doc(chatId).update({
+      'lastMessage': {
+        'sender': userId,
+        'text': message,
+        'date': date,
+      },
     });
   }
 
+  // Future<List<Message>> getChat(String chatId) async {
+  //   final chat = await db.collection('chats').doc(chatId).get();
+
+  //   final msgs = await chat.reference
+  //       .collection('messages')
+  //       .orderBy('date', descending: true)
+  //       .get()
+  //       .then((value) => value.docs)
+  //       .then((value) => value
+  //           .map((doc) => Message(
+  //                 message: doc['text'],
+  //                 time: doc['date'].toDate(),
+  //                 isSentByUser: true,
+  //               ))
+  //           .toList());
+
+  //   return msgs;
+  // }
   // List<Message> getChat(String userId) {
   //   final chat = db
   //       .collection('chats')
