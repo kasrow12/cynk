@@ -1,19 +1,41 @@
 import 'dart:async';
 
 import 'package:cynk/features/auth/auth_service.dart';
+import 'package:cynk/features/data/cynk_user.dart';
 import 'package:equatable/equatable.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class AuthCubit extends Cubit<AuthState> {
-  AuthCubit({required this.authService}) : super(authService.stateFromAuth) {
-    _authStateSubscription = authService.isSignedInStream.listen((isSignedIn) {
-      emit(authService.stateFromAuth);
+  AuthCubit({required this.authService}) : super(SignedOutState()) {
+    _authStateSubscription =
+        authService.isSignedInStream.listen((isSignedIn) async {
+      if (isSignedIn) {
+        await fetchUser();
+      } else {
+        emit(SignedOutState());
+      }
     });
   }
 
   final AuthService authService;
   StreamSubscription<bool>? _authStateSubscription;
+
+  Future<void> fetchUser() async {
+    final user = authService.currentUser;
+
+    if (user == null) {
+      emit(SignedOutState());
+      return;
+    }
+
+    try {
+      final cynkUser = await authService.fetchUser(user.uid);
+
+      emit(SignedInState(user: cynkUser));
+    } catch (e) {
+      emit(SignedOutState(error: 'Error: $e'));
+    }
+  }
 
   Future<void> signInWithGoogle() async {
     emit(SigningInState());
@@ -23,7 +45,7 @@ class AuthCubit extends Cubit<AuthState> {
 
       switch (result) {
         case SignInResult.success:
-          emit(authService.stateFromAuth);
+          await fetchUser();
           break;
         case SignInResult.networkError:
           emit(SignedOutState(error: 'Network error'));
@@ -51,7 +73,7 @@ class AuthCubit extends Cubit<AuthState> {
 
       switch (result) {
         case SignInResult.success:
-          emit(authService.stateFromAuth);
+          await fetchUser();
           break;
         case SignInResult.invalidEmail:
           emit(SignedOutState(error: 'Invalid email'));
@@ -83,7 +105,7 @@ class AuthCubit extends Cubit<AuthState> {
 
       switch (result) {
         case SignUpResult.success:
-          emit(authService.stateFromAuth);
+          await fetchUser();
           break;
         case SignUpResult.emailAlreadyInUse:
           emit(SignedOutState(error: 'Email already in use'));
@@ -110,17 +132,12 @@ class AuthCubit extends Cubit<AuthState> {
   }
 }
 
-extension on AuthService {
-  AuthState get stateFromAuth =>
-      isSignedIn ? SignedInState(user: currentUser!) : SignedOutState();
-}
-
 sealed class AuthState extends Equatable {}
 
 class SignedInState extends AuthState {
   SignedInState({required this.user});
 
-  final User user;
+  final CynkUser user;
 
   @override
   List<Object> get props => [user];

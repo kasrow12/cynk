@@ -9,7 +9,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 
 class CynkApp extends StatelessWidget {
-  const CynkApp({super.key});
+  const CynkApp({required this.child, super.key});
+
+  final Widget child;
 
   @override
   Widget build(BuildContext context) {
@@ -18,6 +20,7 @@ class CynkApp extends StatelessWidget {
         Provider(
           create: (context) => AuthService(
             firebase: FirebaseAuth.instance,
+            db: FirebaseFirestore.instance,
           ),
         ),
         BlocProvider(
@@ -31,7 +34,7 @@ class CynkApp extends StatelessWidget {
           ),
         ),
       ],
-      child: AuthGate(),
+      child: AuthGate(child: child),
     );
   }
 }

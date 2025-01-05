@@ -3,7 +3,7 @@ import 'dart:async';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cynk/features/data/chat.dart';
 import 'package:cynk/features/data/message.dart';
-import 'package:cynk/features/data/user.dart';
+import 'package:cynk/features/data/cynk_user.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ChatsCubit extends Cubit<ChatsState> {

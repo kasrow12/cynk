@@ -7,12 +7,12 @@ part of 'routes.dart';
 // **************************************************************************
 
 List<RouteBase> get $appRoutes => [
-      $authGateRoute,
+      $homeRoute,
     ];
 
-RouteBase get $authGateRoute => GoRouteData.$route(
+RouteBase get $homeRoute => GoRouteData.$route(
       path: '/',
-      factory: $AuthGateRouteExtension._fromState,
+      factory: $HomeRouteExtension._fromState,
       routes: [
         GoRouteData.$route(
           path: '/chat/:chatId',
@@ -21,8 +21,8 @@ RouteBase get $authGateRoute => GoRouteData.$route(
       ],
     );
 
-extension $AuthGateRouteExtension on AuthGateRoute {
-  static AuthGateRoute _fromState(GoRouterState state) => AuthGateRoute();
+extension $HomeRouteExtension on HomeRoute {
+  static HomeRoute _fromState(GoRouterState state) => HomeRoute();
 
   String get location => GoRouteData.$location(
         '/',
@@ -41,21 +41,18 @@ extension $AuthGateRouteExtension on AuthGateRoute {
 extension $ChatRouteExtension on ChatRoute {
   static ChatRoute _fromState(GoRouterState state) => ChatRoute(
         chatId: state.pathParameters['chatId']!,
-        $extra: state.extra as User,
       );
 
   String get location => GoRouteData.$location(
         '/chat/${Uri.encodeComponent(chatId)}',
       );
 
-  void go(BuildContext context) => context.go(location, extra: $extra);
+  void go(BuildContext context) => context.go(location);
 
-  Future<T?> push<T>(BuildContext context) =>
-      context.push<T>(location, extra: $extra);
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
 
   void pushReplacement(BuildContext context) =>
-      context.pushReplacement(location, extra: $extra);
+      context.pushReplacement(location);
 
-  void replace(BuildContext context) =>
-      context.replace(location, extra: $extra);
+  void replace(BuildContext context) => context.replace(location);
 }

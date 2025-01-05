@@ -1,11 +1,7 @@
 import 'package:cynk/cynk_app.dart';
-import 'package:cynk/features/auth/auth_gate.dart';
-import 'package:cynk/features/data/user.dart';
 import 'package:cynk/firebase_options.dart';
 import 'package:cynk/pl_messages.dart';
 import 'package:cynk/routes/routes.dart';
-import 'package:cynk/screens/chat/chat_screen.dart';
-import 'package:cynk/screens/chats/chats_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:go_router/go_router.dart';
@@ -15,16 +11,10 @@ void main() {
   WidgetsFlutterBinding.ensureInitialized();
   timeago.setLocaleMessages('pl', PlMessages());
 
-  runApp(const _App(child: CynkApp()));
+  runApp(_App());
 }
 
 class _App extends StatefulWidget {
-  const _App({
-    required this.child,
-  });
-
-  final Widget child;
-
   @override
   _AppState createState() => _AppState();
 }
@@ -61,11 +51,15 @@ class _AppState extends State<_App> {
     return MaterialApp.router(
       routerConfig: _router,
       title: 'Cynk',
-      builder: (ctxt, chld) => FutureBuilder(
+      builder: (context, child) => FutureBuilder(
         future: _init,
         builder: (context, snapshot) {
+          if (child == null) {
+            return const Placeholder();
+          }
+
           return switch (snapshot.connectionState) {
-            ConnectionState.done => widget.child,
+            ConnectionState.done => CynkApp(child: child),
             _ => const Scaffold(
                 body: Center(
                   child: CircularProgressIndicator(),

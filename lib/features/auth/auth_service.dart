@@ -1,3 +1,5 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cynk/features/data/cynk_user.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
@@ -16,9 +18,10 @@ enum SignUpResult {
 }
 
 class AuthService {
-  const AuthService({required this.firebase});
+  const AuthService({required this.firebase, required this.db});
 
   final FirebaseAuth firebase;
+  final FirebaseFirestore db;
 
   User? get currentUser => firebase.currentUser;
 
@@ -28,6 +31,16 @@ class AuthService {
       firebase.authStateChanges().map((user) => user != null);
 
   Future<void> signOut() => firebase.signOut();
+
+  Future<CynkUser> fetchUser(String id) async {
+    final userDoc = await db.collection('users').doc(id).get();
+
+    if (!userDoc.exists) {
+      throw Exception('User not found');
+    }
+
+    return CynkUser.fromDocument(userDoc.id, userDoc.data()!);
+  }
 
   Future<SignInResult> signInWithEmail(
       {required String email, required String password}) async {

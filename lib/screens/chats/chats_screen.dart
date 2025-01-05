@@ -1,7 +1,7 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cynk/features/data/chat.dart';
 import 'package:cynk/features/data/chats_cubit.dart';
-import 'package:cynk/features/data/user.dart';
+import 'package:cynk/features/data/cynk_user.dart';
 import 'package:cynk/routes/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -9,15 +9,13 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 class ChatsScreen extends StatelessWidget {
-  const ChatsScreen({required this.user, super.key});
-
-  final User user;
+  const ChatsScreen({super.key});
 
   @override
   Widget build(BuildContext context) {
     return BlocProvider(
-      create: (context) =>
-          ChatsCubit(db: FirebaseFirestore.instance)..loadChats(user.id),
+      create: (context) => ChatsCubit(db: FirebaseFirestore.instance)
+        ..loadChats(context.read<CynkUser>().id),
       child: Scaffold(
         appBar: AppBar(
           backgroundColor: Colors.grey[400],
@@ -33,8 +31,7 @@ class ChatsScreen extends StatelessWidget {
                   return ChatEntry(
                       chat: chat,
                       // onTap: () => context.go('/chat/${chat.id}', extra: user));
-                      onTap: () =>
-                          ChatRoute(chatId: chat.id, $extra: user).go(context));
+                      onTap: () => ChatRoute(chatId: chat.id).go(context));
                 },
               ),
             ChatsError(:final error) => Center(child: Text(error)),

@@ -2,8 +2,9 @@ import 'package:cynk/features/auth/auth_service.dart';
 import 'package:cynk/features/data/firestore_data_source.dart';
 import 'package:cynk/features/data/message.dart';
 import 'package:cynk/features/data/messages_cubit.dart';
-import 'package:cynk/features/data/user.dart';
+import 'package:cynk/features/data/cynk_user.dart';
 import 'package:cynk/features/auth/auth_cubit.dart';
+import 'package:cynk/routes/routes.dart';
 import 'package:cynk/screens/chat/date_separator.dart';
 import 'package:cynk/screens/chat/message_tile.dart';
 import 'package:flutter/material.dart';
@@ -12,12 +13,10 @@ import 'package:timeago/timeago.dart' as timeago;
 
 class ChatScreen extends StatelessWidget {
   ChatScreen({
-    required this.user,
     required this.chatId,
     super.key,
   });
 
-  final User user;
   final String chatId;
 
   final TextEditingController _messageController = TextEditingController();
@@ -25,6 +24,7 @@ class ChatScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final user = context.watch<CynkUser>();
     return BlocProvider(
       create: (context) => MessagesCubit(
         dataSource: context.read(),
@@ -35,9 +35,7 @@ class ChatScreen extends StatelessWidget {
           backgroundColor: Colors.grey[400],
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
-            onPressed: () {
-              print('Back button pressed');
-            },
+            onPressed: () => HomeRoute().go(context),
           ),
           title: Row(
             children: [
@@ -167,7 +165,7 @@ class ChatMessages extends StatelessWidget {
     required this.messages,
   });
 
-  final User user;
+  final CynkUser user;
   final List<Message> messages;
 
   @override
