@@ -23,6 +23,7 @@ class ChatsCubit extends Cubit<ChatsState> {
         _chatsSubscription = db
             .collection('chats')
             .where(FieldPath.documentId, whereIn: chatIds)
+            // .orderBy('lastMessageDate', descending: true) nie działa
             .snapshots()
             .listen(
           (snapshot) async {
@@ -42,7 +43,9 @@ class ChatsCubit extends Cubit<ChatsState> {
                     ),
                   ),
                 )
-                .toList();
+                .toList()
+              ..sort(
+                  (a, b) => b.lastMessage.time.compareTo(a.lastMessage.time));
 
             final userIds = chats.expand((chat) => chat.members).toSet();
 
