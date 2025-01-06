@@ -1,5 +1,3 @@
-import 'package:cynk/features/auth/auth_gate.dart';
-import 'package:cynk/features/data/cynk_user.dart';
 import 'package:cynk/screens/chat/chat_screen.dart';
 import 'package:cynk/screens/chats/chats_screen.dart';
 import 'package:flutter/material.dart';

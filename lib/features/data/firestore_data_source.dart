@@ -1,3 +1,4 @@
+import 'package:cynk/features/data/cynk_user.dart';
 import 'package:cynk/features/data/message.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -40,6 +41,24 @@ class FirestoreDataSource {
         'date': date,
       },
     });
+  }
+
+  Future<Map<String, CynkUser>> fetchUsers(List<String> id) async {
+    final users = await db
+        .collection('users')
+        .where(FieldPath.documentId, whereIn: id)
+        .get();
+
+    // return dictionary of uid: CynkUser
+    return Map.fromEntries(users.docs.map(
+      (doc) => MapEntry(doc.id, CynkUser.fromDocument(doc.id, doc.data())),
+    ));
+
+    // if (!userDoc.exists) {
+    //   throw Exception('User not found');
+    // }
+
+    // return CynkUser.fromDocument(userDoc.id, userDoc.data()!);
   }
 
   // Future<List<Message>> getChat(String chatId) async {

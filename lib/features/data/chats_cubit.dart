@@ -10,34 +10,29 @@ class ChatsCubit extends Cubit<ChatsState> {
   ChatsCubit({required this.db}) : super(ChatsLoading());
   final FirebaseFirestore db;
 
-  StreamSubscription<List<Chat>>? _chatsSubscription;
+  StreamSubscription? _chatsSubscription;
 
   void loadChats(String userId) {
     _chatsSubscription?.cancel();
     emit(ChatsLoading());
 
-    // user has array with ids of chats
-    // chats is separate collection
-    // return list of chats mentioned in user's field chats
-    // chat doesnt have users field
-
     db.collection('users').doc(userId).get().then(
       (userDoc) {
         final chatIds = List<String>.from(userDoc.data()?['chats']);
-        print(chatIds);
-        print(chatIds.runtimeType);
 
         _chatsSubscription = db
             .collection('chats')
             .where(FieldPath.documentId, whereIn: chatIds)
             .snapshots()
-            .map(
-              (snapshot) => snapshot.docs.map(
-                (doc) {
-                  final chat = Chat(
+            .listen(
+          (snapshot) async {
+            final chats = snapshot.docs
+                .map(
+                  (doc) => Chat(
                     id: doc.id,
                     name: doc.data()['name'] as String,
                     photoUrl: doc.data()['photoUrl'] as String,
+                    members: List<String>.from(doc.data()['members']),
                     lastMessage: Message(
                       message: doc.data()['lastMessage']['text'] as String,
                       time: doc.data()['lastMessage']['date'].toDate(),
@@ -45,15 +40,26 @@ class ChatsCubit extends Cubit<ChatsState> {
                       isSentByUser:
                           doc.data()['lastMessage']['sender'] == userId,
                     ),
-                  );
-                  return chat;
-                },
-              ).toList(),
-            )
-            .listen(
-              (chats) => emit(ChatsLoaded(chats)),
-              onError: (error) => emit(ChatsError(error.toString())),
+                  ),
+                )
+                .toList();
+
+            final userIds = chats.expand((chat) => chat.members).toSet();
+
+            final userDocs = await db
+                .collection('users')
+                .where(FieldPath.documentId, whereIn: userIds)
+                .get();
+
+            final users = Map.fromEntries(
+              userDocs.docs.map((doc) =>
+                  MapEntry(doc.id, CynkUser.fromDocument(doc.id, doc.data()))),
             );
+
+            emit(ChatsLoaded(userId, chats, users));
+          },
+          onError: (error) => emit(ChatsError(error.toString())),
+        );
       },
     );
   }
@@ -64,9 +70,11 @@ sealed class ChatsState {}
 class ChatsLoading extends ChatsState {}
 
 class ChatsLoaded extends ChatsState {
-  ChatsLoaded(this.chats);
+  ChatsLoaded(this.userId, this.chats, this.users);
 
+  final String userId;
   final List<Chat> chats;
+  final Map<String, CynkUser> users;
 }
 
 class ChatsError extends ChatsState {

@@ -20,7 +20,6 @@ class CynkApp extends StatelessWidget {
         Provider(
           create: (context) => AuthService(
             firebase: FirebaseAuth.instance,
-            db: FirebaseFirestore.instance,
           ),
         ),
         BlocProvider(

@@ -1,11 +1,9 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cynk/features/auth/auth_cubit.dart';
 import 'package:cynk/features/data/chat.dart';
 import 'package:cynk/features/data/chats_cubit.dart';
-import 'package:cynk/features/data/cynk_user.dart';
 import 'package:cynk/routes/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 
 class ChatsScreen extends StatelessWidget {
@@ -13,30 +11,53 @@ class ChatsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => ChatsCubit(db: FirebaseFirestore.instance)
-        ..loadChats(context.read<CynkUser>().id),
-      child: Scaffold(
-        appBar: AppBar(
-          backgroundColor: Colors.grey[400],
-          title: const Text('Chats'),
+    return Scaffold(
+      appBar: AppBar(
+        backgroundColor: Colors.grey[400],
+        title: const Text('Chats'),
+      ),
+      body: BlocBuilder<ChatsCubit, ChatsState>(builder: (context, state) {
+        return switch (state) {
+          ChatsLoading() => const Center(child: CircularProgressIndicator()),
+          ChatsLoaded(:final chats) => ListView.builder(
+              itemCount: chats.length,
+              itemBuilder: (context, index) {
+                final chat = chats[index];
+                return ChatEntry(
+                    chat: chat,
+                    // onTap: () => context.go('/chat/${chat.id}', extra: user));
+                    onTap: () => ChatRoute(chatId: chat.id).go(context));
+              },
+            ),
+          ChatsError(:final error) => Center(child: Text(error)),
+        };
+      }),
+      drawer: Drawer(
+        shape: const Border(),
+        child: ListView(
+          children: [
+            // const DrawerHeader(
+            //   decoration: BoxDecoration(color: Colors.grey),
+            //   child: Center(
+            //     child: Text(
+            //       'Cynk',
+            //       style: TextStyle(
+            //         color: Colors.white,
+            //         fontSize: 24,
+            //       ),
+            //     ),
+            //   ),
+            // ),
+            ListTile(
+              title: const Text('Contacts'),
+              onTap: () => print('Profile'),
+            ),
+            ListTile(
+              title: const Text('Logout'),
+              onTap: () => context.read<AuthCubit>().signOut(),
+            ),
+          ],
         ),
-        body: BlocBuilder<ChatsCubit, ChatsState>(builder: (context, state) {
-          return switch (state) {
-            ChatsLoading() => const Center(child: CircularProgressIndicator()),
-            ChatsLoaded(:final chats) => ListView.builder(
-                itemCount: chats.length,
-                itemBuilder: (context, index) {
-                  final chat = chats[index];
-                  return ChatEntry(
-                      chat: chat,
-                      // onTap: () => context.go('/chat/${chat.id}', extra: user));
-                      onTap: () => ChatRoute(chatId: chat.id).go(context));
-                },
-              ),
-            ChatsError(:final error) => Center(child: Text(error)),
-          };
-        }),
       ),
     );
   }

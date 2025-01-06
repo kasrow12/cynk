@@ -1,4 +1,5 @@
-import 'package:cynk/features/auth/auth_service.dart';
+import 'package:cynk/features/data/chat.dart';
+import 'package:cynk/features/data/chats_cubit.dart';
 import 'package:cynk/features/data/firestore_data_source.dart';
 import 'package:cynk/features/data/message.dart';
 import 'package:cynk/features/data/messages_cubit.dart';
@@ -19,16 +20,49 @@ class ChatScreen extends StatelessWidget {
 
   final String chatId;
 
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<ChatsCubit, ChatsState>(builder: (context, state) {
+      return switch (state) {
+        ChatsLoading() => const Center(child: CircularProgressIndicator()),
+        ChatsLoaded(:final userId, :final chats, :final users) =>
+          ChatScreenContent(
+            chatId: chatId,
+            userId: userId,
+            chats: chats,
+            users: users,
+          ),
+        ChatsError(:final error) => Center(child: Text(error)),
+      };
+    });
+  }
+}
+
+class ChatScreenContent extends StatelessWidget {
+  ChatScreenContent({
+    required this.chatId,
+    required this.userId,
+    required this.chats,
+    required this.users,
+    super.key,
+  });
+
+  final String chatId;
+  final String userId;
+  final List<Chat> chats;
+  final Map<String, CynkUser> users;
+
   final TextEditingController _messageController = TextEditingController();
-  final FocusNode _messageFocusNode = FocusNode();
+  // final FocusNode _messageFocusNode = FocusNode();
 
   @override
   Widget build(BuildContext context) {
-    final user = context.watch<CynkUser>();
+    final chat = chats.firstWhere((chat) => chat.id == chatId);
+
     return BlocProvider(
       create: (context) => MessagesCubit(
         dataSource: context.read(),
-        userId: user.id,
+        userId: userId,
       )..openChat(chatId),
       child: Scaffold(
         appBar: AppBar(
@@ -41,14 +75,14 @@ class ChatScreen extends StatelessWidget {
             children: [
               CircleAvatar(
                 radius: 20,
-                backgroundImage: NetworkImage(user.photoUrl),
+                backgroundImage: NetworkImage(chat.photoUrl),
               ),
               const SizedBox(width: 12),
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    user.name,
+                    chat.name,
                     style: const TextStyle(
                       fontSize: 18,
                       fontWeight: FontWeight.bold,
@@ -57,7 +91,7 @@ class ChatScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 3),
                   Text(
-                    'widziano ${timeago.format(user.lastSeen, locale: 'pl')}',
+                    'widziano ${timeago.format(users[userId]!.lastSeen, locale: 'pl')}', // TODO
                     style: const TextStyle(
                       fontSize: 12,
                       height: 1,
@@ -98,7 +132,6 @@ class ChatScreen extends StatelessWidget {
                       child: CircularProgressIndicator(),
                     ),
                   MessagesLoaded(:final messages) => ChatMessages(
-                      user: user,
                       messages: messages,
                     ),
                   MessagesError(:final error) => Center(
@@ -133,7 +166,7 @@ class ChatScreen extends StatelessWidget {
                       onSubmitted: (value) {
                         context
                             .read<FirestoreDataSource>()
-                            .sendMessage(chatId, user.id, value);
+                            .sendMessage(chatId, userId, value);
                         _messageController.clear();
                       },
                     ),
@@ -143,8 +176,9 @@ class ChatScreen extends StatelessWidget {
                     icon: const Icon(Icons.send),
                     color: Colors.black,
                     onPressed: () {
-                      context.read<FirestoreDataSource>().sendMessage(
-                          chatId, user.id, _messageController.text);
+                      context
+                          .read<FirestoreDataSource>()
+                          .sendMessage(chatId, userId, _messageController.text);
                       _messageController.clear();
                     },
                   ),
@@ -161,11 +195,9 @@ class ChatScreen extends StatelessWidget {
 class ChatMessages extends StatelessWidget {
   const ChatMessages({
     super.key,
-    required this.user,
     required this.messages,
   });
 
-  final CynkUser user;
   final List<Message> messages;
 
   @override
