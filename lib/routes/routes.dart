@@ -1,5 +1,6 @@
 import 'package:cynk/screens/chat/chat_screen.dart';
 import 'package:cynk/screens/chats/chats_screen.dart';
+import 'package:cynk/screens/contacts/contacts_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -8,7 +9,10 @@ part 'routes.g.dart';
 @TypedGoRoute<HomeRoute>(path: '/', routes: [
   TypedGoRoute<ChatRoute>(
     path: '/chat/:chatId',
-  )
+  ),
+  TypedGoRoute<ContactsRoute>(
+    path: '/contacts',
+  ),
 ])
 class HomeRoute extends GoRouteData {
   @override
@@ -25,5 +29,12 @@ class ChatRoute extends GoRouteData {
   @override
   Widget build(BuildContext context, GoRouterState state) {
     return ChatScreen(chatId: chatId);
+  }
+}
+
+class ContactsRoute extends GoRouteData {
+  @override
+  Widget build(BuildContext context, GoRouterState state) {
+    return ContactsScreen();
   }
 }

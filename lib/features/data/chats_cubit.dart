@@ -11,59 +11,79 @@ class ChatsCubit extends Cubit<ChatsState> {
   final FirebaseFirestore db;
 
   StreamSubscription? _chatsSubscription;
+  StreamSubscription? _usersSubscription;
+
+  Map<String, CynkUser> users = {};
+  List<Chat> chats = [];
 
   void loadChats(String userId) {
     _chatsSubscription?.cancel();
+    _usersSubscription?.cancel();
     emit(ChatsLoading());
 
-    db.collection('users').doc(userId).get().then(
-      (userDoc) {
-        final chatIds = List<String>.from(userDoc.data()?['chats']);
+    _chatsSubscription = db
+        .collection('chats')
+        .where('members', arrayContains: userId)
+        .snapshots()
+        .listen(
+      (snapshot) async {
+        // accumulate all user ids in chats
+        final userIds =
+            snapshot.docs.expand((doc) => doc.data()['members']).toSet();
 
-        _chatsSubscription = db
-            .collection('chats')
-            .where(FieldPath.documentId, whereIn: chatIds)
-            // .orderBy('lastMessageDate', descending: true) nie działa
-            .snapshots()
-            .listen(
-          (snapshot) async {
-            final chats = snapshot.docs
-                .map(
-                  (doc) => Chat(
+        final missingUsers = userIds.where((uid) => !users.containsKey(uid));
+
+        // download missing users and add them to users set
+        if (missingUsers.isNotEmpty) {
+          final userDocs = await db
+              .collection('users')
+              .where(FieldPath.documentId, whereIn: missingUsers)
+              .get();
+
+          users.addAll(Map.fromEntries(userDocs.docs.map(
+            (doc) =>
+                MapEntry(doc.id, CynkUser.fromDocument(doc.id, doc.data())),
+          )));
+        }
+
+        chats = snapshot.docs
+            .map(
+              (doc) => switch (doc.data()['type']) {
+                'private' => PrivateChat(
+                    id: doc.id,
+                    lastMessage:
+                        Message.fromDocument(doc.data()['lastMessage'], userId),
+                    otherUser: users[(doc.data()['members'])
+                        .firstWhere((uid) => uid != userId)]!, // check null
+                  ),
+                'group' => GroupChat(
                     id: doc.id,
                     name: doc.data()['name'] as String,
+                    lastMessage:
+                        Message.fromDocument(doc.data()['lastMessage'], userId),
                     photoUrl: doc.data()['photoUrl'] as String,
-                    members: List<String>.from(doc.data()['members']),
-                    lastMessage: Message(
-                      message: doc.data()['lastMessage']['text'] as String,
-                      time: doc.data()['lastMessage']['date'].toDate(),
-                      sender: doc.data()['lastMessage']['sender'] as String,
-                      isSentByUser:
-                          doc.data()['lastMessage']['sender'] == userId,
-                    ),
-                  ),
-                )
-                .toList()
-              ..sort(
-                  (a, b) => b.lastMessage.time.compareTo(a.lastMessage.time));
+                    members: (doc.data()['members'])
+                        .map((uid) => users[uid]!)
+                        .toList()),
+                _ => throw Exception('Invalid chat type ${doc.data()['type']}'),
+              },
+            )
+            .toList()
+          ..sort((a, b) => b.lastMessage.time.compareTo(a.lastMessage.time));
 
-            final userIds = chats.expand((chat) => chat.members).toSet();
-
-            final userDocs = await db
-                .collection('users')
-                .where(FieldPath.documentId, whereIn: userIds)
-                .get();
-
-            final users = Map.fromEntries(
-              userDocs.docs.map((doc) =>
-                  MapEntry(doc.id, CynkUser.fromDocument(doc.id, doc.data()))),
-            );
-
-            emit(ChatsLoaded(userId, chats, users));
-          },
-          onError: (error) => emit(ChatsError(error.toString())),
-        );
+        emit(ChatsLoaded(userId, chats, users));
       },
+      onError: (error) => emit(ChatsError(error.toString())),
+    );
+
+    _usersSubscription = db.collection('users').snapshots().listen(
+      (snapshot) {
+        users = Map.fromEntries(snapshot.docs.map(
+          (doc) => MapEntry(doc.id, CynkUser.fromDocument(doc.id, doc.data())),
+        ));
+        emit(ChatsLoaded(userId, chats, users));
+      },
+      onError: (error) => emit(ChatsError(error.toString())),
     );
   }
 }

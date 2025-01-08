@@ -18,6 +18,10 @@ RouteBase get $homeRoute => GoRouteData.$route(
           path: '/chat/:chatId',
           factory: $ChatRouteExtension._fromState,
         ),
+        GoRouteData.$route(
+          path: '/contacts',
+          factory: $ContactsRouteExtension._fromState,
+        ),
       ],
     );
 
@@ -45,6 +49,23 @@ extension $ChatRouteExtension on ChatRoute {
 
   String get location => GoRouteData.$location(
         '/chat/${Uri.encodeComponent(chatId)}',
+      );
+
+  void go(BuildContext context) => context.go(location);
+
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  void replace(BuildContext context) => context.replace(location);
+}
+
+extension $ContactsRouteExtension on ContactsRoute {
+  static ContactsRoute _fromState(GoRouterState state) => ContactsRoute();
+
+  String get location => GoRouteData.$location(
+        '/contacts',
       );
 
   void go(BuildContext context) => context.go(location);

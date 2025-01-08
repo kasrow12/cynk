@@ -49,9 +49,8 @@ class ChatsScreen extends StatelessWidget {
             //   ),
             // ),
             ListTile(
-              title: const Text('Contacts'),
-              onTap: () => print('Profile'),
-            ),
+                title: const Text('Contacts'),
+                onTap: () => ContactsRoute().go(context)),
             ListTile(
               title: const Text('Logout'),
               onTap: () => context.read<AuthCubit>().signOut(),
@@ -64,14 +63,18 @@ class ChatsScreen extends StatelessWidget {
 }
 
 class ChatEntry extends StatelessWidget {
-  const ChatEntry({
+  ChatEntry({
     super.key,
     required this.chat,
     required this.onTap,
-  });
+  }) : name = switch (chat) {
+          PrivateChat() => chat.otherUser.name,
+          GroupChat() => chat.name,
+        };
 
   final Chat chat;
   final VoidCallback onTap;
+  final String name;
 
   String formatDate(DateTime date) {
     final now = DateTime.now();
@@ -95,10 +98,18 @@ class ChatEntry extends StatelessWidget {
       child: ListTile(
         leading: CircleAvatar(
           radius: 24,
-          backgroundImage: NetworkImage(chat.photoUrl),
+          backgroundImage: NetworkImage(
+            switch (chat) {
+              PrivateChat(:final otherUser) => otherUser.photoUrl,
+              GroupChat(:final photoUrl) => photoUrl,
+            },
+          ),
         ),
         title: Text(
-          chat.name,
+          switch (chat) {
+            PrivateChat(:final otherUser) => otherUser.name,
+            GroupChat(:final name) => name,
+          },
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         subtitle: Text(chat.lastMessage.message),

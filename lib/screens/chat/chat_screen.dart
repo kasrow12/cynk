@@ -10,6 +10,7 @@ import 'package:cynk/screens/chat/date_separator.dart';
 import 'package:cynk/screens/chat/message_tile.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class ChatScreen extends StatelessWidget {
@@ -69,38 +70,21 @@ class ChatScreenContent extends StatelessWidget {
           backgroundColor: Colors.grey[400],
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
-            onPressed: () => HomeRoute().go(context),
+            onPressed: () => context.pop(),
           ),
-          title: Row(
-            children: [
-              CircleAvatar(
-                radius: 20,
-                backgroundImage: NetworkImage(chat.photoUrl),
-              ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+          title: switch (chat) {
+            PrivateChat(:final otherUser) => UserTile(user: otherUser),
+            GroupChat(:final name, :final photoUrl, :final members) => Row(
                 children: [
-                  Text(
-                    chat.name,
-                    style: const TextStyle(
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                      height: 1,
-                    ),
+                  CircleAvatar(
+                    radius: 20,
+                    backgroundImage: NetworkImage(photoUrl),
                   ),
-                  const SizedBox(height: 3),
-                  Text(
-                    'widziano ${timeago.format(users[userId]!.lastSeen, locale: 'pl')}', // TODO
-                    style: const TextStyle(
-                      fontSize: 12,
-                      height: 1,
-                    ),
-                  ),
+                  const SizedBox(width: 12),
+                  Text(name),
                 ],
               ),
-            ],
-          ),
+          },
           actions: [
             PopupMenuButton<void Function()>(
               itemBuilder: (context) {
@@ -188,6 +172,49 @@ class ChatScreenContent extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class UserTile extends StatelessWidget {
+  const UserTile({
+    super.key,
+    required this.user,
+  });
+
+  final CynkUser user;
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        CircleAvatar(
+          radius: 20,
+          backgroundImage: NetworkImage(user.photoUrl),
+        ),
+        const SizedBox(width: 12),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              user.name,
+              style: const TextStyle(
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                height: 1,
+              ),
+            ),
+            const SizedBox(height: 3),
+            Text(
+              'widziano ${timeago.format(user.lastSeen, locale: 'pl')}', // TODO czy na pewno, intl
+              style: const TextStyle(
+                fontSize: 12,
+                height: 1,
+              ),
+            ),
+          ],
+        ),
+      ],
     );
   }
 }

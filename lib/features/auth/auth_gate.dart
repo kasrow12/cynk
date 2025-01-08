@@ -15,9 +15,15 @@ class AuthGate extends StatelessWidget {
     return BlocBuilder<AuthCubit, AuthState>(
       builder: (context, state) {
         return switch (state) {
-          SignedInState(:final userId) => BlocProvider(
-              create: (context) =>
-                  ChatsCubit(db: FirebaseFirestore.instance)..loadChats(userId),
+          SignedInState(:final userId) => MultiProvider(
+              providers: [
+                BlocProvider(
+                  create: (context) =>
+                      ChatsCubit(db: FirebaseFirestore.instance)
+                        ..loadChats(userId),
+                ),
+                Provider(create: (context) => userId),
+              ],
               child: child,
             ),
           SigningInState() || SignedOutState() => const LoginScreen(),

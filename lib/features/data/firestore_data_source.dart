@@ -26,6 +26,19 @@ class FirestoreDataSource {
         );
   }
 
+  Stream<List<CynkUser>> getContactsStream(String userId) {
+    return db
+        .collection('users')
+        .doc(userId)
+        .collection('contacts')
+        .snapshots()
+        .map(
+          (snapshot) => snapshot.docs
+              .map((doc) => CynkUser.fromDocument(doc.id, doc.data()))
+              .toList(),
+        );
+  }
+
   Future<void> sendMessage(String chatId, String userId, String message) async {
     final date = DateTime.now();
     await db.collection('chats').doc(chatId).collection('messages').add({

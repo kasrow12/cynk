@@ -11,4 +11,13 @@ class Message {
     required this.isSentByUser,
     required this.sender,
   });
+
+  static Message fromDocument(Map<String, dynamic> doc, String userId) {
+    return Message(
+      message: doc['text'],
+      time: doc['date'].toDate(),
+      sender: doc['sender'],
+      isSentByUser: doc['sender'] == userId,
+    );
+  }
 }
