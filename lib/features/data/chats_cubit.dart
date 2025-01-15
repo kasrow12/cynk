@@ -4,6 +4,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cynk/features/data/chat.dart';
 import 'package:cynk/features/data/message.dart';
 import 'package:cynk/features/data/cynk_user.dart';
+import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ChatsCubit extends Cubit<ChatsState> {
@@ -27,24 +28,17 @@ class ChatsCubit extends Cubit<ChatsState> {
         .snapshots()
         .listen(
       (snapshot) async {
-        // accumulate all user ids in chats
         final userIds =
             snapshot.docs.expand((doc) => doc.data()['members']).toSet();
 
-        final missingUsers = userIds.where((uid) => !users.containsKey(uid));
+        final userDocs = await db
+            .collection('users')
+            .where(FieldPath.documentId, whereIn: userIds)
+            .get();
 
-        // download missing users and add them to users set
-        if (missingUsers.isNotEmpty) {
-          final userDocs = await db
-              .collection('users')
-              .where(FieldPath.documentId, whereIn: missingUsers)
-              .get();
-
-          users.addAll(Map.fromEntries(userDocs.docs.map(
-            (doc) =>
-                MapEntry(doc.id, CynkUser.fromDocument(doc.id, doc.data())),
-          )));
-        }
+        users = Map.fromEntries(userDocs.docs.map(
+          (doc) => MapEntry(doc.id, CynkUser.fromDocument(doc.id, doc.data())),
+        ));
 
         chats = snapshot.docs
             .map(
@@ -53,8 +47,8 @@ class ChatsCubit extends Cubit<ChatsState> {
                     id: doc.id,
                     lastMessage:
                         Message.fromDocument(doc.data()['lastMessage'], userId),
-                    otherUser: users[(doc.data()['members'])
-                        .firstWhere((uid) => uid != userId)]!, // check null
+                    otherUser: (doc.data()['members'])
+                        .firstWhere((uid) => uid != userId), // check null
                   ),
                 'group' => GroupChat(
                     id: doc.id,
@@ -62,9 +56,8 @@ class ChatsCubit extends Cubit<ChatsState> {
                     lastMessage:
                         Message.fromDocument(doc.data()['lastMessage'], userId),
                     photoUrl: doc.data()['photoUrl'] as String,
-                    members: (doc.data()['members'])
-                        .map((uid) => users[uid]!)
-                        .toList()),
+                    members: List<String>.from(doc.data()['members']),
+                  ),
                 _ => throw Exception('Invalid chat type ${doc.data()['type']}'),
               },
             )
@@ -81,6 +74,7 @@ class ChatsCubit extends Cubit<ChatsState> {
         users = Map.fromEntries(snapshot.docs.map(
           (doc) => MapEntry(doc.id, CynkUser.fromDocument(doc.id, doc.data())),
         ));
+        print('users: $users');
         emit(ChatsLoaded(userId, chats, users));
       },
       onError: (error) => emit(ChatsError(error.toString())),
@@ -88,9 +82,12 @@ class ChatsCubit extends Cubit<ChatsState> {
   }
 }
 
-sealed class ChatsState {}
+sealed class ChatsState extends Equatable {}
 
-class ChatsLoading extends ChatsState {}
+class ChatsLoading extends ChatsState {
+  @override
+  List<Object?> get props => [];
+}
 
 class ChatsLoaded extends ChatsState {
   ChatsLoaded(this.userId, this.chats, this.users);
@@ -98,10 +95,16 @@ class ChatsLoaded extends ChatsState {
   final String userId;
   final List<Chat> chats;
   final Map<String, CynkUser> users;
+
+  @override
+  List<Object?> get props => [userId, chats, users];
 }
 
 class ChatsError extends ChatsState {
   ChatsError(this.error);
 
   final String error;
+
+  @override
+  List<Object?> get props => [error];
 }

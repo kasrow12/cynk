@@ -73,7 +73,7 @@ class ChatScreenContent extends StatelessWidget {
             onPressed: () => context.pop(),
           ),
           title: switch (chat) {
-            PrivateChat(:final otherUser) => UserTile(user: otherUser),
+            PrivateChat(:final otherUser) => UserTile(user: users[otherUser]!),
             GroupChat(:final name, :final photoUrl, :final members) => Row(
                 children: [
                   CircleAvatar(

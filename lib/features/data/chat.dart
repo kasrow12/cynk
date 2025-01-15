@@ -18,7 +18,7 @@ class PrivateChat extends Chat {
     required this.otherUser,
   });
 
-  final CynkUser otherUser;
+  final String otherUser;
 }
 
 class GroupChat extends Chat {
@@ -32,5 +32,5 @@ class GroupChat extends Chat {
 
   final String name;
   final String photoUrl;
-  final List<CynkUser> members;
+  final List<String> members;
 }
