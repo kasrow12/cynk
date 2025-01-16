@@ -20,7 +20,6 @@ class ContactTile extends StatelessWidget {
       onTap: onTap,
       child: ListTile(
         title: UserItem(user: user),
-        // some dots with menu, print on click
         trailing: PopupMenuButton(
           itemBuilder: (context) => [
             PopupMenuItem(
@@ -36,17 +35,6 @@ class ContactTile extends StatelessWidget {
           ],
         ),
       ),
-      // Padding(
-      //   padding: const EdgeInsets.all(8.0),
-      //   child: Row(
-      //     children: [
-      //       UserItem(user: user),
-      //       // checkbox to select user
-      //       const SizedBox(width: 8),
-      //       const Icon(Icons.check_box_outline_blank),
-      //     ],
-      //   ),
-      // ),
     );
   }
 }

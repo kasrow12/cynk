@@ -2,6 +2,7 @@ import 'package:cynk/features/data/cynk_user.dart';
 import 'package:cynk/features/data/message.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/foundation.dart';
+import 'package:rxdart/rxdart.dart';
 
 class FirestoreDataSource {
   FirestoreDataSource({required this.db});
@@ -27,16 +28,29 @@ class FirestoreDataSource {
         );
   }
 
-  // contact has id of chat
-  Stream<List<String>> getContactsStream(String userId) {
-    return db
+  Stream<List<CynkUser>> getContactsStream(String userId) {
+    // Stream of contact IDs
+    final contactIdsStream = db
         .collection('users')
         .doc(userId)
         .collection('contacts')
         .snapshots()
-        .map(
-          (snapshot) => snapshot.docs.map((doc) => doc.id).toList(),
-        );
+        .map((snapshot) => snapshot.docs.map((doc) => doc.id).toList());
+
+    // Transform to stream of user documents
+    return contactIdsStream.switchMap((contactIds) {
+      if (contactIds.isEmpty) {
+        return Stream.value([]);
+      }
+
+      final userStreams = contactIds.map((uid) => db
+          .collection('users')
+          .doc(uid)
+          .snapshots()
+          .map((doc) => CynkUser.fromDocument(doc.id, doc.data()!)));
+
+      return Rx.combineLatest(userStreams.toList(), (users) => users);
+    });
   }
 
   Future<void> sendMessage(String chatId, String userId, String message) async {
@@ -77,7 +91,7 @@ class FirestoreDataSource {
     // return CynkUser.fromDocument(userDoc.id, userDoc.data()!);
   }
 
-  Future<void> addContact(String userId, String id) {
+  Future<void> addContact(String userId, String id) async {
     if (userId == id) {
       throw ErrorDescription('Error: Cannot add self as contact');
     }
@@ -85,9 +99,21 @@ class FirestoreDataSource {
       throw ErrorDescription('Error: Cannot add empty contact');
     }
 
-    return db.collection('users').doc(id).get().then((userDoc) {
+    await db
+        .collection('users')
+        .doc(userId)
+        .collection('contacts')
+        .doc(id)
+        .get()
+        .then((contactDoc) {
+      if (contactDoc.exists) {
+        throw ErrorDescription('Already a contact');
+      }
+    });
+
+    await db.collection('users').doc(id).get().then((userDoc) {
       if (!userDoc.exists) {
-        throw ErrorDescription('Error: User not found');
+        throw ErrorDescription('User not found');
       }
 
       db.collection('users').doc(userId).collection('contacts').doc(id).set({});

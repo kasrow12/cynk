@@ -1,8 +1,7 @@
 import 'package:cynk/features/auth/auth_cubit.dart';
-import 'package:cynk/features/data/cynk_user.dart';
 import 'package:cynk/routes/routes.dart';
 import 'package:cynk/features/contacts/contacts_cubit.dart';
-import 'package:cynk/screens/chats/widgets/tiles.dart';
+import 'package:cynk/features/contacts/contact_tile.dart';
 import 'package:cynk/utils/private_chat_id.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -49,21 +48,51 @@ class ContactsScreen extends StatelessWidget {
                         return ContactTile(
                           user: contact,
                           onTap: () => ChatRoute(
-                            chatId: privateChatId(userId, contact.id),
+                            chatId: getPrivateChatId(userId, contact.id),
                           ).go(context),
                           onRemove: () async {
-                            try {
-                              await context
-                                  .read<ContactsCubit>()
-                                  .removeContact(contact.id);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text('Contact removed')),
-                              );
-                            } catch (e) {
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                SnackBar(content: Text(e.toString())),
-                              );
-                            }
+                            await showDialog(
+                              context: context,
+                              builder: (dialogContext) {
+                                return AlertDialog(
+                                  title: const Text('Remove Contact'),
+                                  content: const Text(
+                                      'Are you sure you want to remove this contact?'),
+                                  actions: [
+                                    TextButton(
+                                      onPressed: () async {
+                                        Navigator.of(dialogContext).pop();
+                                        try {
+                                          await context
+                                              .read<ContactsCubit>()
+                                              .removeContact(contact.id);
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                                content:
+                                                    Text('Contact removed')),
+                                          );
+                                        } catch (e) {
+                                          ScaffoldMessenger.of(context)
+                                              .showSnackBar(
+                                            SnackBar(
+                                                content: Text(e.toString())),
+                                          );
+                                        }
+                                      },
+                                      child: const Text('Yes',
+                                          style: TextStyle(color: Colors.red)),
+                                    ),
+                                    TextButton(
+                                      onPressed: () {
+                                        Navigator.of(dialogContext).pop();
+                                      },
+                                      child: const Text('No'),
+                                    ),
+                                  ],
+                                );
+                              },
+                            );
                           },
                         );
                       },
@@ -84,7 +113,12 @@ class ContactsScreen extends StatelessWidget {
                     TextEditingController();
                 return AlertDialog(
                   title: const Text('Add Contact'),
-                  content: TextField(controller: controller),
+                  content: TextField(
+                    controller: controller,
+                    decoration: const InputDecoration(
+                      hintText: 'Enter contact ID',
+                    ),
+                  ),
                   actions: [
                     TextButton(
                       onPressed: () async {
@@ -109,6 +143,8 @@ class ContactsScreen extends StatelessWidget {
               },
             ),
             child: const Icon(Icons.add),
+            shape: CircleBorder(),
+            tooltip: 'Add Contact',
           ),
         ),
       ),

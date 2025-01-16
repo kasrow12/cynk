@@ -11,23 +11,22 @@ class ContactsCubit extends Cubit<ContactsState> {
   }) : super(ContactsLoading());
 
   final FirestoreDataSource dataSource;
-  StreamSubscription<List<String>>? _contactsSubscription;
+  StreamSubscription<List<CynkUser>>? _contactsSubscription;
   final String userId;
 
   void loadContacts() {
     _contactsSubscription?.cancel();
     emit(ContactsLoading());
-    print(userId);
 
     _contactsSubscription = dataSource.getContactsStream(userId).listen(
       (contacts) {
-        dataSource.fetchUsers(contacts).then((users) {
-          final contacts = users.values.toList();
-          emit(ContactsLoaded(
-            allContacts: contacts,
-            filteredContacts: contacts,
-          ));
-        });
+        final sorted = contacts.toList()
+          ..sort(
+              (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
+        emit(ContactsLoaded(
+          allContacts: contacts,
+          filteredContacts: sorted,
+        ));
       },
       onError: (error) => emit(ContactsError(error.toString())),
     );
@@ -52,7 +51,8 @@ class ContactsCubit extends Cubit<ContactsState> {
       final contacts = (state as ContactsLoaded).allContacts;
       final filtered = contacts.where((contact) {
         return contact.name.toLowerCase().contains(query.toLowerCase());
-      }).toList();
+      }).toList()
+        ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
       emit(ContactsLoaded(
         allContacts: contacts,
         filteredContacts: filtered,
