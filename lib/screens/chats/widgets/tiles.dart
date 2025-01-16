@@ -1,0 +1,52 @@
+import 'package:cynk/features/data/cynk_user.dart';
+import 'package:cynk/screens/chat/chat_screen.dart';
+import 'package:flutter/material.dart';
+
+class ContactTile extends StatelessWidget {
+  ContactTile({
+    super.key,
+    required this.user,
+    required this.onTap,
+    required this.onRemove,
+  });
+
+  final CynkUser user;
+  final VoidCallback onTap;
+  final VoidCallback onRemove;
+
+  @override
+  Widget build(BuildContext context) {
+    return InkWell(
+      onTap: onTap,
+      child: ListTile(
+        title: UserItem(user: user),
+        // some dots with menu, print on click
+        trailing: PopupMenuButton(
+          itemBuilder: (context) => [
+            PopupMenuItem(
+              child: Text('View Profile'),
+              onTap: () {
+                print('View Profile');
+              },
+            ),
+            PopupMenuItem(
+              child: Text('Remove Contact'),
+              onTap: onRemove,
+            ),
+          ],
+        ),
+      ),
+      // Padding(
+      //   padding: const EdgeInsets.all(8.0),
+      //   child: Row(
+      //     children: [
+      //       UserItem(user: user),
+      //       // checkbox to select user
+      //       const SizedBox(width: 8),
+      //       const Icon(Icons.check_box_outline_blank),
+      //     ],
+      //   ),
+      // ),
+    );
+  }
+}

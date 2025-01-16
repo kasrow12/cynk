@@ -1,8 +1,8 @@
 name: cynk
 
 environment:
-  sdk: 3.6.0
-  flutter: 3.24.3
+  sdk: 3.6.1
+  flutter: 3.27.2
 
 dependencies:
   bloc_concurrency: ^0.2.5

@@ -3,9 +3,9 @@ import 'package:cynk/features/data/chat.dart';
 import 'package:cynk/features/data/chats_cubit.dart';
 import 'package:cynk/features/data/cynk_user.dart';
 import 'package:cynk/routes/routes.dart';
+import 'package:cynk/utils/date_format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
 
 class ChatsScreen extends StatelessWidget {
   const ChatsScreen({super.key});
@@ -14,7 +14,7 @@ class ChatsScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.grey[400],
+        // backgroundColor: Colors.grey[400],
         title: const Text('Chats'),
       ),
       body: BlocBuilder<ChatsCubit, ChatsState>(builder: (context, state) {
@@ -79,21 +79,6 @@ class ChatEntry extends StatelessWidget {
   final Map<String, CynkUser> users;
   final VoidCallback onTap;
   final String name;
-
-  String formatDate(DateTime date) {
-    final now = DateTime.now();
-    final today = DateTime(now.year, now.month, now.day);
-    final lastWeek = today.subtract(const Duration(days: 6));
-
-    if (date.isAfter(today)) {
-      return DateFormat.Hm().format(date);
-    }
-    if (date.isAfter(lastWeek)) {
-      return DateFormat.E().format(date);
-    }
-
-    return DateFormat('dd.MM').format(date);
-  }
 
   @override
   Widget build(BuildContext context) {

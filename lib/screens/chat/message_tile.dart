@@ -20,11 +20,11 @@ class MessageTile extends StatelessWidget {
             : const EdgeInsets.only(right: 30),
         child: DecoratedBox(
           decoration: BoxDecoration(
-            color: message.isSentByUser ? Colors.green[300] : Colors.grey[300],
+            color: message.isSentByUser ? Colors.green[700] : Colors.grey[900],
             borderRadius: BorderRadius.circular(12),
           ),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(12, 10, 12, 6),
+            padding: const EdgeInsets.fromLTRB(12, 6, 12, 4),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
@@ -39,8 +39,10 @@ class MessageTile extends StatelessWidget {
                 Text(
                   '${message.time.hour.toString().padLeft(2, '0')}:${message.time.minute.toString().padLeft(2, '0')}',
                   // message.time.toString(),
-                  style: const TextStyle(
-                    color: Colors.black54,
+                  style: TextStyle(
+                    color: message.isSentByUser
+                        ? Colors.grey[300]
+                        : Colors.grey[500],
                     fontSize: 12,
                   ),
                 ),

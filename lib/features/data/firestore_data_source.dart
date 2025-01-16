@@ -1,6 +1,7 @@
 import 'package:cynk/features/data/cynk_user.dart';
 import 'package:cynk/features/data/message.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 
 class FirestoreDataSource {
   FirestoreDataSource({required this.db});
@@ -26,16 +27,15 @@ class FirestoreDataSource {
         );
   }
 
-  Stream<List<CynkUser>> getContactsStream(String userId) {
+  // contact has id of chat
+  Stream<List<String>> getContactsStream(String userId) {
     return db
         .collection('users')
         .doc(userId)
         .collection('contacts')
         .snapshots()
         .map(
-          (snapshot) => snapshot.docs
-              .map((doc) => CynkUser.fromDocument(doc.id, doc.data()))
-              .toList(),
+          (snapshot) => snapshot.docs.map((doc) => doc.id).toList(),
         );
   }
 
@@ -57,6 +57,9 @@ class FirestoreDataSource {
   }
 
   Future<Map<String, CynkUser>> fetchUsers(List<String> id) async {
+    if (id.isEmpty) {
+      return {};
+    }
     final users = await db
         .collection('users')
         .where(FieldPath.documentId, whereIn: id)
@@ -72,6 +75,32 @@ class FirestoreDataSource {
     // }
 
     // return CynkUser.fromDocument(userDoc.id, userDoc.data()!);
+  }
+
+  Future<void> addContact(String userId, String id) {
+    if (userId == id) {
+      throw ErrorDescription('Error: Cannot add self as contact');
+    }
+    if (id.isEmpty) {
+      throw ErrorDescription('Error: Cannot add empty contact');
+    }
+
+    return db.collection('users').doc(id).get().then((userDoc) {
+      if (!userDoc.exists) {
+        throw ErrorDescription('Error: User not found');
+      }
+
+      db.collection('users').doc(userId).collection('contacts').doc(id).set({});
+    });
+  }
+
+  Future<void> removeContact(String userId, String id) {
+    return db
+        .collection('users')
+        .doc(userId)
+        .collection('contacts')
+        .doc(id)
+        .delete();
   }
 
   // Future<List<Message>> getChat(String chatId) async {

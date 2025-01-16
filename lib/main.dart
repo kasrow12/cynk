@@ -51,6 +51,7 @@ class _AppState extends State<_App> {
     return MaterialApp.router(
       routerConfig: _router,
       title: 'Cynk',
+      darkTheme: ThemeData.dark(),
       builder: (context, child) => FutureBuilder(
         future: _init,
         builder: (context, snapshot) {

@@ -67,13 +67,13 @@ class ChatScreenContent extends StatelessWidget {
       )..openChat(chatId),
       child: Scaffold(
         appBar: AppBar(
-          backgroundColor: Colors.grey[400],
+          // backgroundColor: const Color.fromARGB(255, 36, 36, 36),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () => context.pop(),
           ),
           title: switch (chat) {
-            PrivateChat(:final otherUser) => UserTile(user: users[otherUser]!),
+            PrivateChat(:final otherUser) => UserItem(user: users[otherUser]!),
             GroupChat(:final name, :final photoUrl, :final members) => Row(
                 children: [
                   CircleAvatar(
@@ -176,8 +176,8 @@ class ChatScreenContent extends StatelessWidget {
   }
 }
 
-class UserTile extends StatelessWidget {
-  const UserTile({
+class UserItem extends StatelessWidget {
+  const UserItem({
     super.key,
     required this.user,
   });

@@ -698,10 +698,10 @@
       "languageVersion": "3.6"
     }
   ],
-  "generated": "2024-12-29T17:35:32.923733Z",
+  "generated": "2025-01-16T01:15:18.790388Z",
   "generator": "pub",
-  "generatorVersion": "3.6.0",
+  "generatorVersion": "3.6.1",
   "flutterRoot": "file:///home/kasrow12/flutter-sdk/flutter",
-  "flutterVersion": "3.27.1",
+  "flutterVersion": "3.27.2",
   "pubCache": "file:///home/kasrow12/.pub-cache"
 }

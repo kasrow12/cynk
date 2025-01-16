@@ -5,7 +5,8 @@
 ## TODO
 - Login ui
 - Register ui
-- Adding contacts
+- Viewing profile
 - Infinite scrolling (pagination of messages)
 - Last seen
 - Message read
+- Creation of chats
