@@ -1,6 +1,6 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cynk/features/auth/auth_cubit.dart';
-import 'package:cynk/features/data/chats_cubit.dart';
+import 'package:cynk/features/chats/cubits/chats_cubit.dart';
 import 'package:cynk/screens/login/login_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -19,8 +19,8 @@ class AuthGate extends StatelessWidget {
               providers: [
                 BlocProvider(
                   create: (context) =>
-                      ChatsCubit(db: FirebaseFirestore.instance)
-                        ..loadChats(userId),
+                      ChatsCubit(db: context.read(), userId: userId)
+                        ..loadChats(),
                 ),
                 Provider(create: (context) => userId),
               ],

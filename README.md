@@ -10,3 +10,5 @@
 - Last seen
 - Message read
 - Creation of chats
+
+- make chats get Chatbase instead of Chat with CynkUsers

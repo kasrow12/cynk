@@ -1,5 +1,5 @@
 import 'package:cynk/features/data/cynk_user.dart';
-import 'package:cynk/screens/chat/chat_screen.dart';
+import 'package:cynk/features/chats/chat_screen.dart';
 import 'package:flutter/material.dart';
 
 class ContactTile extends StatelessWidget {

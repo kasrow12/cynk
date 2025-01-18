@@ -5,21 +5,21 @@ import 'package:cynk/features/data/message.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class MessagesCubit extends Cubit<MessagesState> {
-  MessagesCubit({
-    required this.dataSource,
-    required this.userId,
-  }) : super(MessagesLoading());
+  MessagesCubit(
+      {required this.dataSource, required this.userId, required this.chatId})
+      : super(MessagesLoading());
 
   final FirestoreDataSource dataSource;
   final String userId;
+  final String chatId;
   StreamSubscription<List<Message>>? _messagesSubscription;
 
-  void openChat(String chatId) {
+  void loadMessages() {
     _messagesSubscription?.cancel();
     emit(MessagesLoading());
 
     _messagesSubscription =
-        dataSource.getChatStream(chatId, userId).listen((messages) {
+        dataSource.getMessagesStream(chatId, userId).listen((messages) {
       emit(MessagesLoaded(messages));
     }, onError: (error) => emit(MessagesError(error.toString())));
   }

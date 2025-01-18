@@ -1,6 +1,8 @@
+import 'package:cynk/features/data/chat.dart';
 import 'package:cynk/features/data/cynk_user.dart';
 import 'package:cynk/features/data/message.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cynk/utils/private_chat_id.dart';
 import 'package:flutter/foundation.dart';
 import 'package:rxdart/rxdart.dart';
 
@@ -9,7 +11,20 @@ class FirestoreDataSource {
 
   final FirebaseFirestore db;
 
-  Stream<List<Message>> getChatStream(String chatId, String userId) {
+  Stream<List<Message>> getMessagesStream(String chatId, String userId) {
+    // db.collection('chats').doc(chatId).get().then((value) {
+    //   if (!value.exists) {
+    //     db.collection('chats').doc(chatId).set({
+    //       'users': [userId],
+    //       'lastMessage': {
+    //         'sender': userId,
+    //         'text': 'Chat created',
+    //         'date': DateTime.now(),
+    //       },
+    //     });
+    //   }
+    // });
+
     return db
         .collection('chats')
         .doc(chatId)
@@ -52,6 +67,98 @@ class FirestoreDataSource {
       return Rx.combineLatest(userStreams.toList(), (users) => users);
     });
   }
+
+  Stream<Chat> getChat(String chatId, String userId) {
+    final chatDoc = db.collection('chats').doc(chatId).snapshots();
+
+    return chatDoc.switchMap((chatDoc) {
+      if (!chatDoc.exists) {
+        return Stream.error(Exception('Chat not found'));
+      }
+
+      final chatData = chatDoc.data()!;
+
+      if (chatData['type'] == 'private') {
+        final otherUserId =
+            chatData['members'].firstWhere((uid) => uid != userId); // null?
+
+        final otherUserDoc =
+            db.collection('users').doc(otherUserId).snapshots();
+
+        return otherUserDoc.map((userDoc) {
+          if (!userDoc.exists) {
+            throw Exception('User not found');
+          }
+
+          return PrivateChat(
+            id: chatId,
+            lastMessage: Message.fromDocument(chatData['lastMessage'], userId),
+            otherUser: CynkUser.fromDocument(otherUserId, userDoc.data()!),
+          );
+        });
+      }
+
+      if (chatData['type'] == 'group') {
+        final memberIds = List<String>.from(chatData['members']);
+
+        final memberStreams = memberIds.map(
+            (uid) => db.collection('users').doc(uid).snapshots().map((doc) {
+                  if (!doc.exists) {
+                    throw Exception('User not found');
+                  }
+
+                  return CynkUser.fromDocument(uid, doc.data()!);
+                }));
+
+        return Rx.combineLatest(memberStreams, (members) {
+          return GroupChat(
+            id: chatId,
+            lastMessage: Message.fromDocument(chatData['lastMessage'], userId),
+            name: chatData['name'],
+            photoUrl: chatData['photoUrl'],
+            members: members,
+          );
+        });
+      }
+
+      throw Exception('Invalid chat type ${chatData['type']}');
+    });
+  }
+
+  // Stream<List<ChatDisplay>> getChatsBetter(String userId) {
+  //   // use chatdisplay class, for private chats get also stream of other user to update the name/profilephoto,
+  //   // for group chats you only
+
+  //   final chatDocs = db
+  //       .collection('chats')
+  //       .where('members', arrayContains: userId)
+  //       .snapshots();
+
+  //   return chatDocs.switchMap((snapshot) {
+
+  // }
+
+// previous version had
+// _chatsSubscription = db
+  //     .collection('chats')
+  //     .where('members', arrayContains: userId)
+  // Stream<List<Chat>> getChats(String userId) {
+  //   // get chats where user is a member
+  //   // then use getChat function
+  //   final chatDocs = db
+  //       .collection('chats')
+  //       .where('members', arrayContains: userId)
+  //       .snapshots();
+
+  //   return chatDocs.switchMap((snapshot) {
+  //     final chatStreams = snapshot.docs.map((doc) {
+  //       final chatId = doc.id;
+  //       return getChat(chatId, userId);
+  //     });
+
+  //     return Rx.combineLatest(chatStreams.toList(), (chats) => chats);
+  //   });
+  // }
 
   Future<void> sendMessage(String chatId, String userId, String message) async {
     final date = DateTime.now();
@@ -129,6 +236,61 @@ class FirestoreDataSource {
         .delete();
   }
 
+  Stream<List<ChatDisplay>> getChatDisplays(String userId) {
+    final chatDocs = db
+        .collection('chats')
+        .where('members', arrayContains: userId)
+        .snapshots();
+
+    return chatDocs.switchMap((snapshot) {
+      final chatStreams = snapshot.docs.map((chatDoc) {
+        final chatData = chatDoc.data();
+
+        if (chatData['type'] == 'private') {
+          // For private chats, get the other user's name and photo
+          final otherUserId = chatData['members']
+              .firstWhere((uid) => uid != userId, orElse: () => null);
+
+          if (otherUserId == null) {
+            throw Exception('Invalid private chat with no other user.');
+          }
+
+          final otherUserDoc =
+              db.collection('users').doc(otherUserId).snapshots();
+
+          return otherUserDoc.map((userDoc) {
+            if (!userDoc.exists) {
+              throw Exception('Other user not found');
+            }
+
+            final userData = userDoc.data()!;
+            return ChatDisplay(
+              id: getPrivateChatId(userId, otherUserId),
+              name: userData['name'],
+              photoUrl: userData['photoUrl'],
+              lastMessage:
+                  Message.fromDocument(chatData['lastMessage'], userId),
+            );
+          });
+        }
+        if (chatData['type'] == 'group') {
+          // For group chats, directly use chat document fields
+          return Stream.value(ChatDisplay(
+            id: chatDoc.id,
+            name: chatData['name'],
+            photoUrl: chatData['photoUrl'],
+            lastMessage: Message.fromDocument(chatData['lastMessage'], userId),
+          ));
+        }
+
+        throw Exception('Invalid chat type: ${chatData['type']}');
+      });
+
+      // Combine all individual chat streams into a list of ChatDisplay
+      return Rx.combineLatest(chatStreams, (chatDisplays) => chatDisplays);
+    });
+  }
+
   // Future<List<Message>> getChat(String chatId) async {
   //   final chat = await db.collection('chats').doc(chatId).get();
 
@@ -188,4 +350,18 @@ class FirestoreDataSource {
   //       .toList(),
   // );
   // }
+}
+
+class ChatDisplay {
+  const ChatDisplay({
+    required this.id,
+    required this.name,
+    required this.photoUrl,
+    required this.lastMessage,
+  });
+
+  final String id;
+  final String name;
+  final String photoUrl;
+  final Message lastMessage;
 }

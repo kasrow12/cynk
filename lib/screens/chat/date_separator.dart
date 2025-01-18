@@ -17,7 +17,6 @@ class DateSeparator extends StatelessWidget {
         child: Text(
           DateFormat('d MMMM').format(date),
           style: const TextStyle(
-            color: Colors.black54,
             fontSize: 12,
           ),
         ),

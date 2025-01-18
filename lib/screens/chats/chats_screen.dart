@@ -1,7 +1,8 @@
 import 'package:cynk/features/auth/auth_cubit.dart';
 import 'package:cynk/features/data/chat.dart';
-import 'package:cynk/features/data/chats_cubit.dart';
+import 'package:cynk/features/chats/cubits/chats_cubit.dart';
 import 'package:cynk/features/data/cynk_user.dart';
+import 'package:cynk/features/data/firestore_data_source.dart';
 import 'package:cynk/routes/routes.dart';
 import 'package:cynk/utils/date_format.dart';
 import 'package:flutter/material.dart';
@@ -20,13 +21,12 @@ class ChatsScreen extends StatelessWidget {
       body: BlocBuilder<ChatsCubit, ChatsState>(builder: (context, state) {
         return switch (state) {
           ChatsLoading() => const Center(child: CircularProgressIndicator()),
-          ChatsLoaded(:final chats, :final users) => ListView.builder(
+          ChatsLoaded(:final chats) => ListView.builder(
               itemCount: chats.length,
               itemBuilder: (context, index) {
                 final chat = chats[index];
                 return ChatEntry(
                     chat: chat,
-                    users: users,
                     // onTap: () => context.go('/chat/${chat.id}', extra: user));
                     onTap: () => ChatRoute(chatId: chat.id).go(context));
               },
@@ -68,17 +68,11 @@ class ChatEntry extends StatelessWidget {
   ChatEntry({
     super.key,
     required this.chat,
-    required this.users,
     required this.onTap,
-  }) : name = switch (chat) {
-          PrivateChat() => users[chat.otherUser]!.name,
-          GroupChat() => chat.name,
-        };
+  });
 
-  final Chat chat;
-  final Map<String, CynkUser> users;
+  final ChatDisplay chat;
   final VoidCallback onTap;
-  final String name;
 
   @override
   Widget build(BuildContext context) {
@@ -87,18 +81,10 @@ class ChatEntry extends StatelessWidget {
       child: ListTile(
         leading: CircleAvatar(
           radius: 24,
-          backgroundImage: NetworkImage(
-            switch (chat) {
-              PrivateChat(:final otherUser) => users[otherUser]!.photoUrl,
-              GroupChat(:final photoUrl) => photoUrl,
-            },
-          ),
+          backgroundImage: NetworkImage(chat.photoUrl),
         ),
         title: Text(
-          switch (chat) {
-            PrivateChat(:final otherUser) => users[otherUser]!.name,
-            GroupChat(:final name) => name,
-          },
+          chat.name,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         subtitle: Text(chat.lastMessage.message),
