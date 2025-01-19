@@ -296,8 +296,6 @@ class ChatMessages extends StatelessWidget {
                       } else {
                         return const SizedBox(height: 8);
                       }
-
-                      return Text(index.toString());
                     },
                   ),
                 MessagesError(:final error) => Text(error.toString()),

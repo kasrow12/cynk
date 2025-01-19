@@ -1,7 +1,5 @@
 import 'package:cynk/features/auth/auth_cubit.dart';
-import 'package:cynk/features/data/chat.dart';
 import 'package:cynk/features/chats/cubits/chats_cubit.dart';
-import 'package:cynk/features/data/cynk_user.dart';
 import 'package:cynk/features/data/firestore_data_source.dart';
 import 'package:cynk/routes/routes.dart';
 import 'package:cynk/utils/date_format.dart';

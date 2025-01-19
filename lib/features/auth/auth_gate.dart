@@ -1,4 +1,3 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cynk/features/auth/auth_cubit.dart';
 import 'package:cynk/features/auth/current_user.dart';
 import 'package:cynk/features/chats/cubits/chats_cubit.dart';
