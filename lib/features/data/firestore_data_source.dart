@@ -12,19 +12,6 @@ class FirestoreDataSource {
   final FirebaseFirestore db;
 
   Stream<List<Message>> getMessagesStream(String chatId, String userId) {
-    // db.collection('chats').doc(chatId).get().then((value) {
-    //   if (!value.exists) {
-    //     db.collection('chats').doc(chatId).set({
-    //       'users': [userId],
-    //       'lastMessage': {
-    //         'sender': userId,
-    //         'text': 'Chat created',
-    //         'date': DateTime.now(),
-    //       },
-    //     });
-    //   }
-    // });
-
     return db
         .collection('chats')
         .doc(chatId)

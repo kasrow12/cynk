@@ -1,5 +1,5 @@
 import 'package:cynk/features/chats/chat_screen.dart';
-import 'package:cynk/screens/chats/chats_screen.dart';
+import 'package:cynk/features/chats/chats_screen.dart';
 import 'package:cynk/features/contacts/contacts_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';

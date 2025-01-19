@@ -1,6 +1,6 @@
+import 'package:cynk/features/auth/current_user.dart';
 import 'package:cynk/features/chats/cubits/messages_cubit.dart';
 import 'package:cynk/features/data/chat.dart';
-import 'package:cynk/features/chats/cubits/chats_cubit.dart';
 import 'package:cynk/features/data/firestore_data_source.dart';
 import 'package:cynk/features/chats/cubits/chat_cubit.dart';
 import 'package:cynk/features/data/cynk_user.dart';
@@ -22,148 +22,131 @@ class ChatScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ChatsCubit, ChatsState>(builder: (context, state) {
-      return switch (state) {
-        ChatsLoading() => const Center(child: CircularProgressIndicator()),
-        ChatsLoaded(:final userId, :final chats) => ChatScreenContent(
-            userId: userId,
-            chatDisplay: chats.firstWhere((chat) => chat.id == chatId),
-          ),
-        ChatsError(:final error) => Center(child: Text(error)),
-      };
-    });
+    return BlocProvider(
+      create: (context) => ChatCubit(
+        dataSource: context.read(),
+        userId: context.read<CurrentUser>().id,
+        chatId: chatId,
+      )..openChat(),
+      child: BlocBuilder<ChatCubit, ChatState>(
+        builder: (context, state) {
+          return switch (state) {
+            ChatLoading() => const Center(child: CircularProgressIndicator()),
+            ChatLoaded(:final userId, :final chat) => ChatScreenContent(
+                userId: userId,
+                chat: chat,
+              ),
+            ChatError(:final error) => Text(error.toString()),
+          };
+        },
+      ),
+    );
   }
 }
 
 class ChatScreenContent extends StatelessWidget {
   ChatScreenContent({
     required this.userId,
-    required this.chatDisplay,
+    required this.chat,
     super.key,
   });
 
   final String userId;
-  final ChatDisplay chatDisplay;
+  final Chat chat;
 
   final TextEditingController _messageController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => ChatCubit(
-        dataSource: context.read(),
-        userId: userId,
-        chatId: chatDisplay.id,
-      )..openChat(),
-      child: Scaffold(
-        appBar: AppBar(
-          // backgroundColor: const Color.fromARGB(255, 36, 36, 36),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => context.pop(),
-          ),
-          title: BlocBuilder<ChatCubit, ChatState>(
-            builder: (context, state) {
-              return switch (state) {
-                ChatLoading() => const CircularProgressIndicator(),
-                ChatLoaded(:final chat) => switch (chat) {
-                    PrivateChat(:final otherUser) => UserItem(user: otherUser),
-                    GroupChat(:final name, :final photoUrl, :final members) =>
-                      GroupItem(
-                        name: name,
-                        photoUrl: photoUrl,
-                        count: members.length,
-                      ),
-                  },
-                ChatError(:final error) => Text(error.toString()),
-              };
-            },
-          ),
-          actions: [
-            PopupMenuButton<void Function()>(
-              itemBuilder: (context) {
-                return [
-                  PopupMenuItem(
-                    value: () => context.read<AuthCubit>().signOut(),
-                    child: const Text('Logout'),
-                  ),
-                  PopupMenuItem(
-                    value: () {
-                      debugPrint('Item 2 hit');
-                    },
-                    child: const Text('Item 2'),
-                  ),
-                ];
-              },
-              onSelected: (fn) => fn(),
-            ),
-          ],
+    return Scaffold(
+      appBar: AppBar(
+        // backgroundColor: const Color.fromARGB(255, 36, 36, 36),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
         ),
-        body: Column(
-          children: [
-            // List of messages
-            Expanded(
-              child:
-                  BlocBuilder<ChatCubit, ChatState>(builder: (context, state) {
-                return switch (state) {
-                  ChatLoading() => const Center(
-                      child: CircularProgressIndicator(),
-                    ),
-                  ChatLoaded() => ChatMessages(
-                      chatId: chatDisplay.id,
-                      userId: userId,
-                    ),
-                  ChatError(:final error) => Center(
-                      child: Text('Error: $error'),
-                    ),
-                };
-              }),
+        title: switch (chat) {
+          PrivateChat(:final otherUser) => UserItem(user: otherUser),
+          GroupChat(:final name, :final photoUrl, :final members) => GroupItem(
+              name: name,
+              photoUrl: photoUrl,
+              count: members.length,
             ),
+        },
+        actions: [
+          PopupMenuButton<void Function()>(
+            itemBuilder: (context) {
+              return [
+                PopupMenuItem(
+                  value: () => context.read<AuthCubit>().signOut(),
+                  child: const Text('Logout'),
+                ),
+                PopupMenuItem(
+                  value: () {
+                    debugPrint('Item 2 hit');
+                  },
+                  child: const Text('Item 2'),
+                ),
+              ];
+            },
+            onSelected: (fn) => fn(),
+          ),
+        ],
+      ),
+      body: Column(
+        children: [
+          // List of messages
+          Expanded(
+            child: ChatMessages(
+              chatId: chat.id,
+              userId: userId,
+            ),
+          ),
 
-            // Input box
-            Padding(
-              padding: const EdgeInsets.all(10),
-              child: Row(
-                children: [
-                  Expanded(
-                    child: TextField(
-                      // TODO: shift-enter doesnt work on web
-                      // keyboardType: TextInputType.multiline,
-                      // maxLines: null,
+          // Input box
+          Padding(
+            padding: const EdgeInsets.all(10),
+            child: Row(
+              children: [
+                Expanded(
+                  child: TextField(
+                    // TODO: shift-enter doesnt work on web
+                    // keyboardType: TextInputType.multiline,
+                    // maxLines: null,
 
-                      decoration: InputDecoration(
-                        hintText: 'Message',
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        contentPadding: const EdgeInsets.symmetric(
-                          horizontal: 15,
-                          vertical: 10,
-                        ),
+                    decoration: InputDecoration(
+                      hintText: 'Message',
+                      border: OutlineInputBorder(
+                        borderRadius: BorderRadius.circular(12),
                       ),
-                      controller: _messageController,
-                      onSubmitted: (value) {
-                        context
-                            .read<FirestoreDataSource>()
-                            .sendMessage(chatDisplay.id, userId, value);
-                        _messageController.clear();
-                      },
+                      contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 15,
+                        vertical: 10,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: 10),
-                  IconButton(
-                    icon: const Icon(Icons.send),
-                    onPressed: () {
-                      context.read<FirestoreDataSource>().sendMessage(
-                          chatDisplay.id, userId, _messageController.text);
+                    controller: _messageController,
+                    onSubmitted: (value) {
+                      context
+                          .read<FirestoreDataSource>()
+                          .sendMessage(chat.id, userId, value);
                       _messageController.clear();
                     },
                   ),
-                ],
-              ),
+                ),
+                const SizedBox(width: 10),
+                IconButton(
+                  icon: const Icon(Icons.send),
+                  onPressed: () {
+                    context
+                        .read<FirestoreDataSource>()
+                        .sendMessage(chat.id, userId, _messageController.text);
+                    _messageController.clear();
+                  },
+                ),
+              ],
             ),
-          ],
-        ),
+          ),
+        ],
       ),
     );
   }
@@ -276,7 +259,8 @@ class ChatMessages extends StatelessWidget {
       )..loadMessages(),
       child: BlocBuilder<MessagesCubit, MessagesState>(
           builder: (context, state) => switch (state) {
-                MessagesLoading() => CircularProgressIndicator(),
+                MessagesLoading() =>
+                  const Center(child: CircularProgressIndicator()),
                 MessagesLoaded(:final messages) => ListView.separated(
                     reverse: true,
                     // shrinkWrap: true,

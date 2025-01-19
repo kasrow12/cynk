@@ -19,7 +19,7 @@ class ChatCubit extends Cubit<ChatState> {
     emit(ChatLoading());
 
     _chatSubscription = dataSource.getChat(chatId, userId).listen((chat) {
-      emit(ChatLoaded(chat));
+      emit(ChatLoaded(chat, userId));
     }, onError: (error) => emit(ChatError(error.toString())));
   }
 
@@ -35,8 +35,9 @@ sealed class ChatState {}
 class ChatLoading extends ChatState {}
 
 class ChatLoaded extends ChatState {
-  ChatLoaded(this.chat);
+  ChatLoaded(this.chat, this.userId);
 
+  final String userId;
   final Chat chat;
 }
 
