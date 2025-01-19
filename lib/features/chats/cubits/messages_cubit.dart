@@ -13,6 +13,7 @@ class MessagesCubit extends Cubit<MessagesState> {
   final String userId;
   final String chatId;
   StreamSubscription<List<Message>>? _messagesSubscription;
+  static const int _pageSize = 20;
 
   void loadMessages() {
     _messagesSubscription?.cancel();
@@ -20,8 +21,44 @@ class MessagesCubit extends Cubit<MessagesState> {
 
     _messagesSubscription =
         dataSource.getMessagesStream(chatId, userId).listen((messages) {
-      emit(MessagesLoaded(messages));
+      emit(MessagesLoaded(messages: messages));
     }, onError: (error) => emit(MessagesError(error.toString())));
+  }
+
+  void loadMoreMessages() {
+    if (state is! MessagesLoaded) {
+      return;
+    }
+
+    final currentState = state as MessagesLoaded;
+    if (!currentState.hasMore || currentState.isLoadingMore) {
+      return;
+    }
+
+    emit(currentState.copyWith(isLoadingMore: true));
+
+    final messages = currentState.messages;
+    final lastMessage = messages.last;
+
+    dataSource
+        .getMessages(chatId, userId, lastMessage, _pageSize)
+        .then((newMessages) {
+      print('emit new messages');
+      if (newMessages.length < _pageSize) {
+        emit(currentState.copyWith(
+          messages: messages + newMessages,
+          hasMore: false,
+          isLoadingMore: false,
+        ));
+      } else {
+        emit(currentState.copyWith(
+          messages: messages + newMessages,
+          isLoadingMore: false,
+        ));
+      }
+    }).catchError((error) {
+      emit(MessagesError(error.toString()));
+    });
   }
 
   @override
@@ -36,9 +73,27 @@ sealed class MessagesState {}
 class MessagesLoading extends MessagesState {}
 
 class MessagesLoaded extends MessagesState {
-  MessagesLoaded(this.messages);
+  MessagesLoaded({
+    required this.messages,
+    this.hasMore = true,
+    this.isLoadingMore = false,
+  });
 
   final List<Message> messages;
+  final bool hasMore;
+  final bool isLoadingMore;
+
+  MessagesLoaded copyWith({
+    List<Message>? messages,
+    bool? hasMore,
+    bool? isLoadingMore,
+  }) {
+    return MessagesLoaded(
+      messages: messages ?? this.messages,
+      hasMore: hasMore ?? this.hasMore,
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+    );
+  }
 }
 
 class MessagesError extends MessagesState {

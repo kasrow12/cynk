@@ -5,8 +5,10 @@ import 'package:cynk/features/data/firestore_data_source.dart';
 import 'package:cynk/features/chats/cubits/chat_cubit.dart';
 import 'package:cynk/features/data/cynk_user.dart';
 import 'package:cynk/features/auth/auth_cubit.dart';
+import 'package:cynk/features/widgets.dart';
 import 'package:cynk/screens/chat/date_separator.dart';
 import 'package:cynk/screens/chat/message_tile.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -44,7 +46,7 @@ class ChatScreen extends StatelessWidget {
   }
 }
 
-class ChatScreenContent extends StatelessWidget {
+class ChatScreenContent extends StatefulWidget {
   ChatScreenContent({
     required this.userId,
     required this.chat,
@@ -54,7 +56,40 @@ class ChatScreenContent extends StatelessWidget {
   final String userId;
   final Chat chat;
 
+  @override
+  State<ChatScreenContent> createState() => _ChatScreenContentState();
+}
+
+class _ChatScreenContentState extends State<ChatScreenContent> {
   final TextEditingController _messageController = TextEditingController();
+  final FocusNode _focusNode = FocusNode();
+
+  @override
+  void initState() {
+    super.initState();
+    // check if web/pc platform, if so, request focus, but dont request on mobile
+    if (kIsWeb) {
+      _focusNode.requestFocus();
+    }
+  }
+
+  @override
+  void dispose() {
+    _messageController.dispose();
+    super.dispose();
+  }
+
+  void _onSubmitted(String text) {
+    _focusNode.requestFocus();
+    if (text.isEmpty) return;
+
+    context.read<FirestoreDataSource>().sendMessage(
+          chatId: widget.chat.id,
+          userId: widget.userId,
+          message: text.trim(),
+        );
+    _messageController.clear();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -65,7 +100,7 @@ class ChatScreenContent extends StatelessWidget {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.pop(),
         ),
-        title: switch (chat) {
+        title: switch (widget.chat) {
           PrivateChat(:final otherUser) => UserItem(user: otherUser),
           GroupChat(:final name, :final photoUrl, :final members) => GroupItem(
               name: name,
@@ -74,22 +109,18 @@ class ChatScreenContent extends StatelessWidget {
             ),
         },
         actions: [
-          PopupMenuButton<void Function()>(
+          PopupMenuButton(
             itemBuilder: (context) {
               return [
                 PopupMenuItem(
-                  value: () => context.read<AuthCubit>().signOut(),
-                  child: const Text('Logout'),
+                  child: const Text('Item1'),
+                  onTap: () => print('Item 1 hit'),
                 ),
                 PopupMenuItem(
-                  value: () {
-                    debugPrint('Item 2 hit');
-                  },
                   child: const Text('Item 2'),
                 ),
               ];
             },
-            onSelected: (fn) => fn(),
           ),
         ],
       ),
@@ -97,9 +128,13 @@ class ChatScreenContent extends StatelessWidget {
         children: [
           // List of messages
           Expanded(
-            child: ChatMessages(
-              chatId: chat.id,
-              userId: userId,
+            child: BlocProvider(
+              create: (context) => MessagesCubit(
+                dataSource: context.read(),
+                chatId: widget.chat.id,
+                userId: widget.userId,
+              )..loadMessages(),
+              child: ChatMessages(),
             ),
           ),
 
@@ -112,8 +147,9 @@ class ChatScreenContent extends StatelessWidget {
                   child: TextField(
                     // TODO: shift-enter doesnt work on web
                     // keyboardType: TextInputType.multiline,
-                    // maxLines: null,
+                    maxLines: null,
 
+                    focusNode: _focusNode,
                     decoration: InputDecoration(
                       hintText: 'Message',
                       border: OutlineInputBorder(
@@ -125,23 +161,13 @@ class ChatScreenContent extends StatelessWidget {
                       ),
                     ),
                     controller: _messageController,
-                    onSubmitted: (value) {
-                      context
-                          .read<FirestoreDataSource>()
-                          .sendMessage(chat.id, userId, value);
-                      _messageController.clear();
-                    },
+                    onSubmitted: _onSubmitted,
                   ),
                 ),
                 const SizedBox(width: 10),
                 IconButton(
                   icon: const Icon(Icons.send),
-                  onPressed: () {
-                    context
-                        .read<FirestoreDataSource>()
-                        .sendMessage(chat.id, userId, _messageController.text);
-                    _messageController.clear();
-                  },
+                  onPressed: () => _onSubmitted(_messageController.text),
                 ),
               ],
             ),
@@ -173,26 +199,28 @@ class CynkTile extends StatelessWidget {
           backgroundImage: NetworkImage(photoUrl),
         ),
         const SizedBox(width: 12),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              name,
-              style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-                height: 1,
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              TrimmedText(
+                text: name,
+                style: const TextStyle(
+                  fontSize: 18,
+                  fontWeight: FontWeight.bold,
+                  height: 1,
+                ),
               ),
-            ),
-            const SizedBox(height: 3),
-            Text(
-              subtitle,
-              style: const TextStyle(
-                fontSize: 12,
-                height: 1,
+              const SizedBox(height: 3),
+              TrimmedText(
+                text: subtitle,
+                style: const TextStyle(
+                  fontSize: 12,
+                  height: 1,
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ],
     );
@@ -239,67 +267,96 @@ class GroupItem extends StatelessWidget {
   }
 }
 
-class ChatMessages extends StatelessWidget {
+class ChatMessages extends StatefulWidget {
   const ChatMessages({
     super.key,
-    required this.chatId,
-    required this.userId,
   });
 
-  final String chatId;
-  final String userId;
+  @override
+  State<ChatMessages> createState() => _ChatMessagesState();
+}
+
+class _ChatMessagesState extends State<ChatMessages> {
+  final _scrollController = ScrollController();
+
+  @override
+  void initState() {
+    super.initState();
+    _scrollController.addListener(_onScroll);
+  }
+
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent * 0.9) {
+      context.read<MessagesCubit>().loadMoreMessages();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => MessagesCubit(
-        dataSource: context.read(),
-        chatId: chatId,
-        userId: userId,
-      )..loadMessages(),
-      child: BlocBuilder<MessagesCubit, MessagesState>(
-          builder: (context, state) => switch (state) {
-                MessagesLoading() =>
-                  const Center(child: CircularProgressIndicator()),
-                MessagesLoaded(:final messages) => ListView.separated(
-                    reverse: true,
-                    // shrinkWrap: true,
-                    padding: const EdgeInsets.symmetric(horizontal: 10),
-                    itemCount:
-                        messages.length + 1, // +1 for the first message date
-                    itemBuilder: (context, index) {
-                      // Allows for the date separator before the first message
-                      if (index >= messages.length) {
-                        return const SizedBox(height: 0);
-                      }
+    return BlocBuilder<MessagesCubit, MessagesState>(
+      builder: (context, state) => switch (state) {
+        MessagesLoading() => const Center(child: CircularProgressIndicator()),
+        MessagesLoaded(:final messages, :final isLoadingMore) => Stack(
+            children: [
+              ListView.separated(
+                controller: _scrollController,
+                reverse: true,
+                // shrinkWrap: true,
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                itemCount: messages.length + 1,
+                // +1 for the first message date
+                itemBuilder: (context, index) {
+                  // Allows for the date separator before the first message
+                  if (index >= messages.length) {
+                    return const SizedBox(height: 0);
+                  }
 
-                      return MessageTile(message: messages[index]);
-                    },
-                    separatorBuilder: (context, index) {
-                      if (index + 1 >= messages.length) {
-                        return DateSeparator(date: messages[index].time);
-                      }
+                  return MessageTile(
+                      message: messages[index],
+                      key: ValueKey(messages[index].id));
+                },
+                separatorBuilder: (context, index) {
+                  if (index + 1 >= messages.length) {
+                    return DateSeparator(date: messages[index].time);
+                  }
 
-                      final current = messages[index];
-                      final prev = messages[index + 1];
+                  final current = messages[index];
+                  final prev = messages[index + 1];
 
-                      // Show date separator if the previous message was sent on a different day
-                      if (prev.time.year != current.time.year ||
-                          prev.time.month != current.time.month ||
-                          prev.time.day != current.time.day) {
-                        return DateSeparator(date: current.time);
-                      }
+                  // Show date separator if the previous message was sent on a different day
+                  if (prev.time.year != current.time.year ||
+                      prev.time.month != current.time.month ||
+                      prev.time.day != current.time.day) {
+                    return DateSeparator(date: current.time);
+                  }
 
-                      if (prev.isSentByUser == current.isSentByUser &&
-                          current.time.difference(prev.time).inMinutes < 10) {
-                        return const SizedBox(height: 3);
-                      } else {
-                        return const SizedBox(height: 8);
-                      }
-                    },
-                  ),
-                MessagesError(:final error) => Text(error.toString()),
-              }),
+                  if (prev.isSentByUser == current.isSentByUser &&
+                      current.time.difference(prev.time).inMinutes < 10) {
+                    return const SizedBox(height: 3);
+                  } else {
+                    return const SizedBox(height: 8);
+                  }
+                },
+              ),
+              if (isLoadingMore)
+                const Positioned(
+                  top: 0,
+                  left: 0,
+                  right: 0,
+                  child: LinearProgressIndicator(),
+                ),
+            ],
+          ),
+        MessagesError(:final error) => Text(error.toString()),
+      },
     );
   }
 }

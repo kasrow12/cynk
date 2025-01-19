@@ -1,6 +1,9 @@
+import 'dart:math';
+
 import 'package:cynk/features/auth/auth_cubit.dart';
 import 'package:cynk/features/chats/cubits/chats_cubit.dart';
 import 'package:cynk/features/data/firestore_data_source.dart';
+import 'package:cynk/features/widgets.dart';
 import 'package:cynk/routes/routes.dart';
 import 'package:cynk/utils/date_format.dart';
 import 'package:flutter/material.dart';
@@ -36,18 +39,20 @@ class ChatsScreen extends StatelessWidget {
         shape: const Border(),
         child: ListView(
           children: [
-            // const DrawerHeader(
-            //   decoration: BoxDecoration(color: Colors.grey),
-            //   child: Center(
-            //     child: Text(
-            //       'Cynk',
-            //       style: TextStyle(
-            //         color: Colors.white,
-            //         fontSize: 24,
-            //       ),
-            //     ),
-            //   ),
-            // ),
+            const DrawerHeader(
+              child: Center(
+                child: Text(
+                  'Cynk',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 24,
+                  ),
+                ),
+              ),
+              decoration: BoxDecoration(
+                color: Colors.blue,
+              ),
+            ),
             ListTile(
                 title: const Text('Contacts'),
                 onTap: () => ContactsRoute().go(context)),
@@ -81,11 +86,12 @@ class ChatEntry extends StatelessWidget {
           radius: 24,
           backgroundImage: NetworkImage(chat.photoUrl),
         ),
-        title: Text(
-          chat.name,
+        title: TrimmedText(
+          text: chat.name,
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
-        subtitle: Text(chat.lastMessage.message),
+        subtitle:
+            TrimmedText(text: chat.lastMessage.message.replaceAll('\n', ' ')),
         trailing: Text(
           formatDate(chat.lastMessage.time),
           style: const TextStyle(fontSize: 13),

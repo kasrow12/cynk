@@ -17,17 +17,43 @@ class FirestoreDataSource {
         .doc(chatId)
         .collection('messages')
         .orderBy('date', descending: true)
+        .limit(20) //TODO
         .snapshots()
         .map(
           (snapshot) => snapshot.docs
-              .map((doc) => Message(
-                    message: doc['text'],
-                    time: doc['date'].toDate(),
-                    sender: doc['sender'],
-                    isSentByUser: doc['sender'] == userId,
+              .map((doc) => Message.fromDocument(
+                    id: doc.id,
+                    doc: doc.data(),
+                    userId: userId,
                   ))
               .toList(),
         );
+  }
+
+  Future<List<Message>> getMessages(
+    String chatId,
+    String userId,
+    Message lastMessage,
+    int limit,
+  ) async {
+    final messages = await db
+        .collection('chats')
+        .doc(chatId)
+        .collection('messages')
+        .orderBy('date', descending: true)
+        .startAfter([lastMessage.time])
+        .limit(limit)
+        .get()
+        .then((value) => value.docs)
+        .then((value) => value
+            .map((doc) => Message.fromDocument(
+                  id: doc.id,
+                  doc: doc.data(),
+                  userId: userId,
+                ))
+            .toList());
+
+    return messages;
   }
 
   Stream<List<CynkUser>> getContactsStream(String userId) {
@@ -79,7 +105,11 @@ class FirestoreDataSource {
 
           return PrivateChat(
             id: chatId,
-            lastMessage: Message.fromDocument(chatData['lastMessage'], userId),
+            lastMessage: Message.fromDocument(
+              id: chatData['lastMessageId'],
+              doc: chatData['lastMessage'],
+              userId: userId,
+            ),
             otherUser: CynkUser.fromDocument(otherUserId, userDoc.data()!),
           );
         });
@@ -100,7 +130,11 @@ class FirestoreDataSource {
         return Rx.combineLatest(memberStreams, (members) {
           return GroupChat(
             id: chatId,
-            lastMessage: Message.fromDocument(chatData['lastMessage'], userId),
+            lastMessage: Message.fromDocument(
+              id: chatData['lastMessageId'],
+              doc: chatData['lastMessage'],
+              userId: userId,
+            ),
             name: chatData['name'],
             photoUrl: chatData['photoUrl'],
             members: members,
@@ -147,20 +181,28 @@ class FirestoreDataSource {
   //   });
   // }
 
-  Future<void> sendMessage(String chatId, String userId, String message) async {
+  Future<void> sendMessage({
+    required String chatId,
+    required String userId,
+    required String message,
+  }) async {
     final date = DateTime.now();
-    await db.collection('chats').doc(chatId).collection('messages').add({
-      'sender': userId,
-      'text': message,
-      'date': date,
-    });
 
-    await db.collection('chats').doc(chatId).update({
-      'lastMessage': {
+    await db.runTransaction((transaction) async {
+      final chatRef = db.collection('chats').doc(chatId);
+      final messageRef = chatRef.collection('messages').doc();
+
+      final msg = {
         'sender': userId,
         'text': message,
         'date': date,
-      },
+      };
+
+      transaction.set(messageRef, msg);
+
+      transaction.update(chatRef, {
+        'lastMessage': msg,
+      });
     });
   }
 
@@ -227,6 +269,7 @@ class FirestoreDataSource {
     final chatDocs = db
         .collection('chats')
         .where('members', arrayContains: userId)
+        .orderBy('lastMessage.date', descending: true)
         .snapshots();
 
     return chatDocs.switchMap((snapshot) {
@@ -255,8 +298,11 @@ class FirestoreDataSource {
               id: getPrivateChatId(userId, otherUserId),
               name: userData['name'],
               photoUrl: userData['photoUrl'],
-              lastMessage:
-                  Message.fromDocument(chatData['lastMessage'], userId),
+              lastMessage: Message.fromDocument(
+                id: chatData['lastMessageId'],
+                doc: chatData['lastMessage'],
+                userId: userId,
+              ),
             );
           });
         }
@@ -266,7 +312,11 @@ class FirestoreDataSource {
             id: chatDoc.id,
             name: chatData['name'],
             photoUrl: chatData['photoUrl'],
-            lastMessage: Message.fromDocument(chatData['lastMessage'], userId),
+            lastMessage: Message.fromDocument(
+              id: chatData['lastMessageId'],
+              doc: chatData['lastMessage'],
+              userId: userId,
+            ),
           ));
         }
 
@@ -340,7 +390,7 @@ class FirestoreDataSource {
 }
 
 class ChatDisplay {
-  const ChatDisplay({
+  ChatDisplay({
     required this.id,
     required this.name,
     required this.photoUrl,

@@ -34,6 +34,8 @@ class ContactTile extends StatelessWidget {
             ),
           ],
         ),
+        // change padding
+        contentPadding: const EdgeInsets.only(left: 8),
       ),
     );
   }

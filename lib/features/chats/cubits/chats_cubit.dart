@@ -23,7 +23,10 @@ class ChatsCubit extends Cubit<ChatsState> {
         print('emitted');
         emit(ChatsLoaded(userId, chats));
       },
-      onError: (error) => emit(ChatsError(error.toString())),
+      onError: (error) {
+        print(error.toString());
+        emit(ChatsError(error.toString()));
+      },
     );
   }
 }
