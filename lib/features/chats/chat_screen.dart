@@ -1,6 +1,5 @@
-import 'package:cynk/features/auth/classes/current_user.dart';
 import 'package:cynk/features/chats/classes/chat.dart';
-import 'package:cynk/features/chats/cubits/chat_cubit.dart';
+import 'package:cynk/features/chats/cubits/chats_cubit.dart';
 import 'package:cynk/features/chats/cubits/messages_cubit.dart';
 import 'package:cynk/features/data/cynk_user.dart';
 import 'package:cynk/features/data/firestore_data_source.dart';
@@ -24,24 +23,25 @@ class ChatScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (context) => ChatCubit(
-        dataSource: context.read(),
-        userId: context.read<CurrentUser>().id,
-        chatId: chatId,
-      )..openChat(),
-      child: BlocBuilder<ChatCubit, ChatState>(
-        builder: (context, state) {
-          return switch (state) {
-            ChatLoading() => const Center(child: CircularProgressIndicator()),
-            ChatLoaded(:final userId, :final chat) => ChatScreenContent(
-                userId: userId,
-                chat: chat,
-              ),
-            ChatError(:final error) => Text(error),
-          };
-        },
-      ),
+    return BlocBuilder<ChatsCubit, ChatsState>(
+      builder: (context, state) {
+        if (state is ChatsLoaded) {
+          // Chat not found
+          if (!state.chats.any((chat) => chat.id == chatId)) {
+            context.read<ChatsCubit>().createPrivateChat(chatId);
+            return const Center(child: CircularProgressIndicator());
+          }
+        }
+
+        return switch (state) {
+          ChatsLoading() => const Center(child: CircularProgressIndicator()),
+          ChatsLoaded(:final userId, :final chats) => ChatScreenContent(
+              userId: userId,
+              chat: chats.firstWhere((chat) => chat.id == chatId),
+            ),
+          ChatsError(:final error) => Center(child: Text(error)),
+        };
+      },
     );
   }
 }

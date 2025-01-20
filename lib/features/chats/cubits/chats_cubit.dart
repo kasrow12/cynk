@@ -1,6 +1,6 @@
 import 'dart:async';
 
-import 'package:cynk/features/chats/classes/chat_display.dart';
+import 'package:cynk/features/chats/classes/chat.dart';
 import 'package:cynk/features/data/firestore_data_source.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -13,20 +13,24 @@ class ChatsCubit extends Cubit<ChatsState> {
 
   final String userId;
   final FirestoreDataSource db;
-  StreamSubscription<List<ChatDisplay>>? _chatsSubscription;
+  StreamSubscription<List<Chat>>? _chatsSubscription;
 
   void loadChats() {
     _chatsSubscription?.cancel();
     emit(ChatsLoading());
 
-    _chatsSubscription = db.getChatDisplays(userId).listen(
+    _chatsSubscription = db.getChats(userId).listen(
       (chats) {
         emit(ChatsLoaded(userId, chats));
       },
-      onError: (Object error) {
-        emit(ChatsError(error.toString()));
-      },
+      // onError: (Object error) {
+      //   emit(ChatsError(error.toString()));
+      // },
     );
+  }
+
+  void createPrivateChat(String chatId) {
+    db.createPrivateChat(userId, chatId);
   }
 }
 
@@ -41,7 +45,7 @@ class ChatsLoaded extends ChatsState {
   ChatsLoaded(this.userId, this.chats);
 
   final String userId;
-  final List<ChatDisplay> chats;
+  final List<Chat> chats;
 
   @override
   List<Object?> get props => [userId, chats];

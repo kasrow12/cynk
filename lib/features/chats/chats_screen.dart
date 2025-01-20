@@ -1,5 +1,5 @@
 import 'package:cynk/features/auth/auth_cubit.dart';
-import 'package:cynk/features/chats/classes/chat_display.dart';
+import 'package:cynk/features/chats/classes/chat.dart';
 import 'package:cynk/features/chats/cubits/chats_cubit.dart';
 import 'package:cynk/features/widgets.dart';
 import 'package:cynk/routes/routes.dart';
@@ -21,17 +21,22 @@ class ChatsScreen extends StatelessWidget {
         builder: (context, state) {
           return switch (state) {
             ChatsLoading() => const Center(child: CircularProgressIndicator()),
-            ChatsLoaded(:final chats) => ListView.builder(
-                itemCount: chats.length,
-                itemBuilder: (context, index) {
-                  final chat = chats[index];
-                  return ChatEntry(
-                    chat: chat,
-                    // onTap: () => context.go('/chat/${chat.id}', extra: user));
-                    onTap: () => ChatRoute(chatId: chat.id).go(context),
-                  );
-                },
-              ),
+            ChatsLoaded(:final chats) => chats.isNotEmpty
+                ? ListView.builder(
+                    itemCount: chats.length,
+                    itemBuilder: (context, index) {
+                      final chat = chats[index];
+                      return ChatEntry(
+                        chat: chat,
+                        onTap: () => ChatRoute(chatId: chat.id).go(context),
+                      );
+                    },
+                  )
+                : const Center(
+                    child: Text(
+                      'No chats yet, start a new one by tapping on Contacts',
+                    ),
+                  ),
             ChatsError(:final error) => Center(child: Text(error)),
           };
         },
@@ -76,7 +81,7 @@ class ChatEntry extends StatelessWidget {
     required this.onTap,
   });
 
-  final ChatDisplay chat;
+  final Chat chat;
   final VoidCallback onTap;
 
   @override
@@ -86,14 +91,32 @@ class ChatEntry extends StatelessWidget {
       child: ListTile(
         leading: CircleAvatar(
           radius: 24,
-          backgroundImage: NetworkImage(chat.photoUrl),
+          backgroundImage: NetworkImage(
+            switch (chat) {
+              PrivateChat(:final otherUser) => otherUser.photoUrl,
+              GroupChat(:final photoUrl) => photoUrl,
+            },
+          ),
         ),
         title: TrimmedText(
-          text: chat.name,
+          text: switch (chat) {
+            PrivateChat(:final otherUser) => otherUser.name,
+            GroupChat(:final name) => name,
+          },
           style: const TextStyle(fontWeight: FontWeight.bold),
         ),
         subtitle:
-            TrimmedText(text: chat.lastMessage.message.replaceAll('\n', ' ')),
+            // user name + last message
+            switch (chat) {
+          PrivateChat(:final otherUser) => TrimmedText(
+              text: '${otherUser.name}: ${chat.lastMessage.message}',
+            ),
+          GroupChat(:final members) => TrimmedText(
+              text:
+                  '${members.firstWhere((member) => member.id == chat.lastMessage.sender).name}: ${chat.lastMessage.message}',
+            ),
+        },
+        // TrimmedText(text: chat.lastMessage.message.replaceAll('\n', ' ')),
         trailing: Text(
           formatDate(chat.lastMessage.date),
           style: const TextStyle(fontSize: 13),
