@@ -29,8 +29,10 @@ class AuthService {
 
   Future<void> signOut() => firebase.signOut();
 
-  Future<SignInResult> signInWithEmail(
-      {required String email, required String password}) async {
+  Future<SignInResult> signInWithEmail({
+    required String email,
+    required String password,
+  }) async {
     try {
       await firebase.signInWithEmailAndPassword(
         email: email,
@@ -52,8 +54,10 @@ class AuthService {
     }
   }
 
-  Future<SignUpResult> signUpWithEmail(
-      {required String email, required String password}) async {
+  Future<SignUpResult> signUpWithEmail({
+    required String email,
+    required String password,
+  }) async {
     try {
       await firebase.createUserWithEmailAndPassword(
         email: email,
@@ -72,26 +76,19 @@ class AuthService {
   }
 
   Future<SignInResult> signInWithGoogle() async {
-    final GoogleSignInAccount? googleUser = await GoogleSignIn(
+    final googleUser = await GoogleSignIn(
       clientId:
-          "410051796583-knb1m6u2jdt4h979skrtu7892a38foac.apps.googleusercontent.com",
+          '410051796583-knb1m6u2jdt4h979skrtu7892a38foac.apps.googleusercontent.com',
     ).signIn();
 
-    final GoogleSignInAuthentication? googleAuth =
-        await googleUser?.authentication;
+    final googleAuth = await googleUser?.authentication;
 
     final credential = GoogleAuthProvider.credential(
       accessToken: googleAuth?.accessToken,
       idToken: googleAuth?.idToken,
     );
 
-    final user = await firebase.signInWithCredential(credential);
-
-    if (user.additionalUserInfo?.isNewUser == true) {
-      print("new user");
-    } else {
-      print("old user");
-    }
+    await firebase.signInWithCredential(credential);
 
     return SignInResult.success;
   }

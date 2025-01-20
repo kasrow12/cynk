@@ -1,6 +1,6 @@
 import 'package:cynk/features/auth/auth_cubit.dart';
+import 'package:cynk/features/chats/classes/chat_display.dart';
 import 'package:cynk/features/chats/cubits/chats_cubit.dart';
-import 'package:cynk/features/data/firestore_data_source.dart';
 import 'package:cynk/features/widgets.dart';
 import 'package:cynk/routes/routes.dart';
 import 'package:cynk/utils/date_format.dart';
@@ -17,27 +17,33 @@ class ChatsScreen extends StatelessWidget {
         // backgroundColor: Colors.grey[400],
         title: const Text('Chats'),
       ),
-      body: BlocBuilder<ChatsCubit, ChatsState>(builder: (context, state) {
-        return switch (state) {
-          ChatsLoading() => const Center(child: CircularProgressIndicator()),
-          ChatsLoaded(:final chats) => ListView.builder(
-              itemCount: chats.length,
-              itemBuilder: (context, index) {
-                final chat = chats[index];
-                return ChatEntry(
+      body: BlocBuilder<ChatsCubit, ChatsState>(
+        builder: (context, state) {
+          return switch (state) {
+            ChatsLoading() => const Center(child: CircularProgressIndicator()),
+            ChatsLoaded(:final chats) => ListView.builder(
+                itemCount: chats.length,
+                itemBuilder: (context, index) {
+                  final chat = chats[index];
+                  return ChatEntry(
                     chat: chat,
                     // onTap: () => context.go('/chat/${chat.id}', extra: user));
-                    onTap: () => ChatRoute(chatId: chat.id).go(context));
-              },
-            ),
-          ChatsError(:final error) => Center(child: Text(error)),
-        };
-      }),
+                    onTap: () => ChatRoute(chatId: chat.id).go(context),
+                  );
+                },
+              ),
+            ChatsError(:final error) => Center(child: Text(error)),
+          };
+        },
+      ),
       drawer: Drawer(
         shape: const Border(),
         child: ListView(
           children: [
             const DrawerHeader(
+              decoration: BoxDecoration(
+                color: Colors.blue,
+              ),
               child: Center(
                 child: Text(
                   'Cynk',
@@ -47,13 +53,11 @@ class ChatsScreen extends StatelessWidget {
                   ),
                 ),
               ),
-              decoration: BoxDecoration(
-                color: Colors.blue,
-              ),
             ),
             ListTile(
-                title: const Text('Contacts'),
-                onTap: () => ContactsRoute().go(context)),
+              title: const Text('Contacts'),
+              onTap: () => ContactsRoute().go(context),
+            ),
             ListTile(
               title: const Text('Logout'),
               onTap: () => context.read<AuthCubit>().signOut(),
@@ -66,7 +70,7 @@ class ChatsScreen extends StatelessWidget {
 }
 
 class ChatEntry extends StatelessWidget {
-  ChatEntry({
+  const ChatEntry({
     super.key,
     required this.chat,
     required this.onTap,
@@ -91,7 +95,7 @@ class ChatEntry extends StatelessWidget {
         subtitle:
             TrimmedText(text: chat.lastMessage.message.replaceAll('\n', ' ')),
         trailing: Text(
-          formatDate(chat.lastMessage.time),
+          formatDate(chat.lastMessage.date),
           style: const TextStyle(fontSize: 13),
         ),
       ),

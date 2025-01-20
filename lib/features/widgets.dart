@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class TrimmedText extends StatelessWidget {
-  TrimmedText({
+  const TrimmedText({
     super.key,
     required this.text,
     this.style,

@@ -2,8 +2,8 @@ import 'package:cynk/cynk_app.dart';
 import 'package:cynk/firebase_options.dart';
 import 'package:cynk/pl_messages.dart';
 import 'package:cynk/routes/routes.dart';
-import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:timeago/timeago.dart' as timeago;
 

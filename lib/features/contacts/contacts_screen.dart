@@ -1,7 +1,7 @@
 import 'package:cynk/features/auth/auth_cubit.dart';
-import 'package:cynk/routes/routes.dart';
-import 'package:cynk/features/contacts/contacts_cubit.dart';
 import 'package:cynk/features/contacts/contact_tile.dart';
+import 'package:cynk/features/contacts/contacts_cubit.dart';
+import 'package:cynk/routes/routes.dart';
 import 'package:cynk/utils/private_chat_id.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -12,7 +12,7 @@ class ContactsScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final String userId =
+    final userId =
         (context.read<AuthCubit>().state as SignedInState).userId; // TODO: git?
 
     return BlocProvider(
@@ -22,7 +22,7 @@ class ContactsScreen extends StatelessWidget {
       )..loadContacts(),
       child: Scaffold(
         appBar: AppBar(
-          title: Text('Contacts'),
+          title: const Text('Contacts'),
           leading: IconButton(
             icon: const Icon(Icons.arrow_back),
             onPressed: () => context.pop(),
@@ -51,37 +51,41 @@ class ContactsScreen extends StatelessWidget {
                             chatId: getPrivateChatId(userId, contact.id),
                           ).go(context),
                           onRemove: () async {
-                            await showDialog(
+                            await showDialog<void>(
                               context: context,
                               builder: (dialogContext) {
                                 return AlertDialog(
                                   title: const Text('Remove Contact'),
                                   content: const Text(
-                                      'Are you sure you want to remove this contact?'),
+                                    'Are you sure you want to remove this contact?',
+                                  ),
                                   actions: [
                                     TextButton(
-                                      onPressed: () async {
+                                      onPressed: () {
                                         Navigator.of(dialogContext).pop();
                                         try {
-                                          await context
+                                          context
                                               .read<ContactsCubit>()
                                               .removeContact(contact.id);
                                           ScaffoldMessenger.of(context)
                                               .showSnackBar(
-                                            SnackBar(
-                                                content:
-                                                    Text('Contact removed')),
+                                            const SnackBar(
+                                              content: Text('Contact removed'),
+                                            ),
                                           );
-                                        } catch (e) {
+                                        } catch (err) {
                                           ScaffoldMessenger.of(context)
                                               .showSnackBar(
                                             SnackBar(
-                                                content: Text(e.toString())),
+                                              content: Text(err.toString()),
+                                            ),
                                           );
                                         }
                                       },
-                                      child: const Text('Yes',
-                                          style: TextStyle(color: Colors.red)),
+                                      child: const Text(
+                                        'Yes',
+                                        style: TextStyle(color: Colors.red),
+                                      ),
                                     ),
                                     TextButton(
                                       onPressed: () {
@@ -106,11 +110,10 @@ class ContactsScreen extends StatelessWidget {
         ),
         floatingActionButton: BlocBuilder<ContactsCubit, ContactsState>(
           builder: (context, _) => FloatingActionButton(
-            onPressed: () => showDialog(
+            onPressed: () => showDialog<void>(
               context: context,
               builder: (dialogContext) {
-                final TextEditingController controller =
-                    TextEditingController();
+                final controller = TextEditingController();
                 return AlertDialog(
                   title: const Text('Add Contact'),
                   content: TextField(
@@ -121,18 +124,18 @@ class ContactsScreen extends StatelessWidget {
                   ),
                   actions: [
                     TextButton(
-                      onPressed: () async {
+                      onPressed: () {
                         Navigator.of(dialogContext).pop();
                         try {
-                          await context
+                          context
                               .read<ContactsCubit>()
                               .addContact(controller.text);
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text('Contact added')),
+                            const SnackBar(content: Text('Contact added')),
                           );
-                        } catch (e) {
+                        } catch (err) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(e.toString())),
+                            SnackBar(content: Text(err.toString())),
                           );
                         }
                       },
@@ -142,9 +145,9 @@ class ContactsScreen extends StatelessWidget {
                 );
               },
             ),
-            child: const Icon(Icons.add),
-            shape: CircleBorder(),
+            shape: const CircleBorder(),
             tooltip: 'Add Contact',
+            child: const Icon(Icons.add),
           ),
         ),
       ),
@@ -155,16 +158,19 @@ class ContactsScreen extends StatelessWidget {
 class _SearchBarDelegate extends SliverPersistentHeaderDelegate {
   _SearchBarDelegate({required this.onChanged});
 
-  final ValueChanged onChanged;
+  final ValueChanged<String> onChanged;
 
   @override
   Widget build(
-      BuildContext context, double shrinkOffset, bool overlapsContent) {
+    BuildContext context,
+    double shrinkOffset,
+    bool overlapsContent,
+  ) {
     return Container(
-      padding: const EdgeInsets.all(8.0),
+      padding: const EdgeInsets.all(8),
       color: Theme.of(context).scaffoldBackgroundColor,
       child: TextField(
-        decoration: InputDecoration(
+        decoration: const InputDecoration(
           hintText: 'Search Contacts',
           prefixIcon: Icon(Icons.search),
         ),
@@ -174,10 +180,10 @@ class _SearchBarDelegate extends SliverPersistentHeaderDelegate {
   }
 
   @override
-  double get maxExtent => 60.0;
+  double get maxExtent => 60;
 
   @override
-  double get minExtent => 60.0;
+  double get minExtent => 60;
 
   @override
   bool shouldRebuild(covariant SliverPersistentHeaderDelegate oldDelegate) {

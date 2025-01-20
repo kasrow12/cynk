@@ -23,23 +23,22 @@ class AuthCubit extends Cubit<AuthState> {
       switch (result) {
         case SignInResult.success:
           emit(authService.stateFromAuth);
-          break;
         case SignInResult.networkError:
           emit(SignedOutState(error: 'Network error'));
-          break;
         case SignInResult.userNotFound:
         case SignInResult.wrongPassword:
         case SignInResult.invalidEmail:
           emit(SignedOutState(error: 'Other error'));
-          break;
       }
-    } catch (e) {
-      emit(SignedOutState(error: 'Error: $e'));
+    } catch (err) {
+      emit(SignedOutState(error: 'Error: $err'));
     }
   }
 
-  Future<void> signInWithEmail(
-      {required String email, required String password}) async {
+  Future<void> signInWithEmail({
+    required String email,
+    required String password,
+  }) async {
     emit(SigningInState());
 
     try {
@@ -51,27 +50,24 @@ class AuthCubit extends Cubit<AuthState> {
       switch (result) {
         case SignInResult.success:
           emit(authService.stateFromAuth);
-          break;
         case SignInResult.invalidEmail:
           emit(SignedOutState(error: 'Invalid email'));
-          break;
         case SignInResult.userNotFound:
           emit(SignedOutState(error: 'User not found'));
-          break;
         case SignInResult.wrongPassword:
           emit(SignedOutState(error: 'Wrong password'));
-          break;
         case SignInResult.networkError:
           emit(SignedOutState(error: 'Network error'));
-          break;
       }
-    } catch (e) {
-      emit(SignedOutState(error: 'Error: $e'));
+    } catch (err) {
+      emit(SignedOutState(error: 'Error: $err'));
     }
   }
 
-  Future<void> signUpWithEmail(
-      {required String email, required String password}) async {
+  Future<void> signUpWithEmail({
+    required String email,
+    required String password,
+  }) async {
     emit(SigningInState());
 
     try {
@@ -83,16 +79,13 @@ class AuthCubit extends Cubit<AuthState> {
       switch (result) {
         case SignUpResult.success:
           emit(authService.stateFromAuth);
-          break;
         case SignUpResult.emailAlreadyInUse:
           emit(SignedOutState(error: 'Email already in use'));
-          break;
         case SignUpResult.networkError:
           emit(SignedOutState(error: 'Network error'));
-          break;
       }
-    } catch (e) {
-      emit(SignedOutState(error: 'Error: $e'));
+    } catch (err) {
+      emit(SignedOutState(error: 'Error: $err'));
     }
   }
 

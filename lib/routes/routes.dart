@@ -6,18 +6,21 @@ import 'package:go_router/go_router.dart';
 
 part 'routes.g.dart';
 
-@TypedGoRoute<HomeRoute>(path: '/', routes: [
-  TypedGoRoute<ChatRoute>(
-    path: '/chat/:chatId',
-  ),
-  TypedGoRoute<ContactsRoute>(
-    path: '/contacts',
-  ),
-])
+@TypedGoRoute<HomeRoute>(
+  path: '/',
+  routes: [
+    TypedGoRoute<ChatRoute>(
+      path: '/chat/:chatId',
+    ),
+    TypedGoRoute<ContactsRoute>(
+      path: '/contacts',
+    ),
+  ],
+)
 class HomeRoute extends GoRouteData {
   @override
   Widget build(BuildContext context, GoRouterState state) {
-    return ChatsScreen();
+    return const ChatsScreen();
   }
 }
 
@@ -35,6 +38,6 @@ class ChatRoute extends GoRouteData {
 class ContactsRoute extends GoRouteData {
   @override
   Widget build(BuildContext context, GoRouterState state) {
-    return ContactsScreen();
+    return const ContactsScreen();
   }
 }

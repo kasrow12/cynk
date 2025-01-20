@@ -1,15 +1,17 @@
-import 'package:cynk/features/data/chat.dart';
-import 'package:cynk/features/data/cynk_user.dart';
-import 'package:cynk/features/data/message.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:cynk/features/chats/classes/chat.dart';
+import 'package:cynk/features/chats/classes/chat_display.dart';
+import 'package:cynk/features/chats/classes/message.dart';
+import 'package:cynk/features/data/cynk_user.dart';
 import 'package:cynk/utils/private_chat_id.dart';
-import 'package:flutter/foundation.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:rxdart/rxdart.dart';
 
 class FirestoreDataSource {
-  FirestoreDataSource({required this.db});
+  FirestoreDataSource({required this.db, required this.storage});
 
   final FirebaseFirestore db;
+  final FirebaseStorage storage;
 
   Stream<List<Message>> getMessagesStream(String chatId, String userId) {
     return db
@@ -17,15 +19,17 @@ class FirestoreDataSource {
         .doc(chatId)
         .collection('messages')
         .orderBy('date', descending: true)
-        .limit(20) //TODO
+        .limit(20) // TODO
         .snapshots()
         .map(
           (snapshot) => snapshot.docs
-              .map((doc) => Message.fromDocument(
-                    id: doc.id,
-                    doc: doc.data(),
-                    userId: userId,
-                  ))
+              .map(
+                (doc) => Message.fromDocument(
+                  id: doc.id,
+                  doc: doc.data(),
+                  userId: userId,
+                ),
+              )
               .toList(),
         );
   }
@@ -41,17 +45,21 @@ class FirestoreDataSource {
         .doc(chatId)
         .collection('messages')
         .orderBy('date', descending: true)
-        .startAfter([lastMessage.time])
+        .startAfter([lastMessage.date])
         .limit(limit)
         .get()
         .then((value) => value.docs)
-        .then((value) => value
-            .map((doc) => Message.fromDocument(
+        .then(
+          (value) => value
+              .map(
+                (doc) => Message.fromDocument(
                   id: doc.id,
                   doc: doc.data(),
                   userId: userId,
-                ))
-            .toList());
+                ),
+              )
+              .toList(),
+        );
 
     return messages;
   }
@@ -71,11 +79,13 @@ class FirestoreDataSource {
         return Stream.value([]);
       }
 
-      final userStreams = contactIds.map((uid) => db
-          .collection('users')
-          .doc(uid)
-          .snapshots()
-          .map((doc) => CynkUser.fromDocument(doc.id, doc.data()!)));
+      final userStreams = contactIds.map(
+        (uid) => db
+            .collection('users')
+            .doc(uid)
+            .snapshots()
+            .map((doc) => CynkUser.fromDocument(doc.id, doc.data()!)),
+      );
 
       return Rx.combineLatest(userStreams.toList(), (users) => users);
     });
@@ -92,8 +102,9 @@ class FirestoreDataSource {
       final chatData = chatDoc.data()!;
 
       if (chatData['type'] == 'private') {
-        final otherUserId =
-            chatData['members'].firstWhere((uid) => uid != userId); // null?
+        final otherUserId = (chatData['members'] as List<dynamic>)
+            .firstWhere((uid) => uid != userId)
+            .toString();
 
         final otherUserDoc =
             db.collection('users').doc(otherUserId).snapshots();
@@ -106,8 +117,8 @@ class FirestoreDataSource {
           return PrivateChat(
             id: chatId,
             lastMessage: Message.fromDocument(
-              id: chatData['lastMessageId'],
-              doc: chatData['lastMessage'],
+              id: chatData['lastMessageId'] as String,
+              doc: chatData['lastMessage'] as Map<String, dynamic>,
               userId: userId,
             ),
             otherUser: CynkUser.fromDocument(otherUserId, userDoc.data()!),
@@ -116,27 +127,29 @@ class FirestoreDataSource {
       }
 
       if (chatData['type'] == 'group') {
-        final memberIds = List<String>.from(chatData['members']);
+        final memberIds =
+            List<String>.from(chatData['members'] as List<dynamic>);
 
         final memberStreams = memberIds.map(
-            (uid) => db.collection('users').doc(uid).snapshots().map((doc) {
-                  if (!doc.exists) {
-                    throw Exception('User not found');
-                  }
+          (uid) => db.collection('users').doc(uid).snapshots().map((doc) {
+            if (!doc.exists) {
+              throw Exception('User not found');
+            }
 
-                  return CynkUser.fromDocument(uid, doc.data()!);
-                }));
+            return CynkUser.fromDocument(uid, doc.data()!);
+          }),
+        );
 
         return Rx.combineLatest(memberStreams, (members) {
           return GroupChat(
             id: chatId,
             lastMessage: Message.fromDocument(
-              id: chatData['lastMessageId'],
-              doc: chatData['lastMessage'],
+              id: chatData['lastMessageId'] as String,
+              doc: chatData['lastMessage'] as Map<String, dynamic>,
               userId: userId,
             ),
-            name: chatData['name'],
-            photoUrl: chatData['photoUrl'],
+            name: chatData['name'] as String,
+            photoUrl: chatData['photoUrl'] as String,
             members: members,
           );
         });
@@ -185,6 +198,7 @@ class FirestoreDataSource {
     required String chatId,
     required String userId,
     required String message,
+    String? photoUrl,
   }) async {
     final date = DateTime.now();
 
@@ -196,13 +210,14 @@ class FirestoreDataSource {
         'sender': userId,
         'text': message,
         'date': date,
+        if (photoUrl != null) 'photoUrl': photoUrl,
       };
 
-      transaction.set(messageRef, msg);
-
-      transaction.update(chatRef, {
-        'lastMessage': msg,
-      });
+      transaction
+        ..set(messageRef, msg)
+        ..update(chatRef, {
+          'lastMessage': msg,
+        });
     });
   }
 
@@ -216,9 +231,11 @@ class FirestoreDataSource {
         .get();
 
     // return dictionary of uid: CynkUser
-    return Map.fromEntries(users.docs.map(
-      (doc) => MapEntry(doc.id, CynkUser.fromDocument(doc.id, doc.data())),
-    ));
+    return Map.fromEntries(
+      users.docs.map(
+        (doc) => MapEntry(doc.id, CynkUser.fromDocument(doc.id, doc.data())),
+      ),
+    );
 
     // if (!userDoc.exists) {
     //   throw Exception('User not found');
@@ -229,10 +246,10 @@ class FirestoreDataSource {
 
   Future<void> addContact(String userId, String id) async {
     if (userId == id) {
-      throw ErrorDescription('Error: Cannot add self as contact');
+      throw Exception('Cannot add self as contact');
     }
     if (id.isEmpty) {
-      throw ErrorDescription('Error: Cannot add empty contact');
+      throw Exception('Cannot add empty contact');
     }
 
     await db
@@ -243,13 +260,13 @@ class FirestoreDataSource {
         .get()
         .then((contactDoc) {
       if (contactDoc.exists) {
-        throw ErrorDescription('Already a contact');
+        throw Exception('Already a contact');
       }
     });
 
     await db.collection('users').doc(id).get().then((userDoc) {
       if (!userDoc.exists) {
-        throw ErrorDescription('User not found');
+        throw Exception('User not found');
       }
 
       db.collection('users').doc(userId).collection('contacts').doc(id).set({});
@@ -278,12 +295,9 @@ class FirestoreDataSource {
 
         if (chatData['type'] == 'private') {
           // For private chats, get the other user's name and photo
-          final otherUserId = chatData['members']
-              .firstWhere((uid) => uid != userId, orElse: () => null);
-
-          if (otherUserId == null) {
-            throw Exception('Invalid private chat with no other user.');
-          }
+          final otherUserId = (chatData['members'] as List<dynamic>)
+              .firstWhere((uid) => uid != userId)
+              .toString();
 
           final otherUserDoc =
               db.collection('users').doc(otherUserId).snapshots();
@@ -296,11 +310,11 @@ class FirestoreDataSource {
             final userData = userDoc.data()!;
             return ChatDisplay(
               id: getPrivateChatId(userId, otherUserId),
-              name: userData['name'],
-              photoUrl: userData['photoUrl'],
+              name: userData['name'] as String,
+              photoUrl: userData['photoUrl'] as String,
               lastMessage: Message.fromDocument(
-                id: chatData['lastMessageId'],
-                doc: chatData['lastMessage'],
+                id: chatData['lastMessageId'] as String,
+                doc: chatData['lastMessage'] as Map<String, dynamic>,
                 userId: userId,
               ),
             );
@@ -308,16 +322,18 @@ class FirestoreDataSource {
         }
         if (chatData['type'] == 'group') {
           // For group chats, directly use chat document fields
-          return Stream.value(ChatDisplay(
-            id: chatDoc.id,
-            name: chatData['name'],
-            photoUrl: chatData['photoUrl'],
-            lastMessage: Message.fromDocument(
-              id: chatData['lastMessageId'],
-              doc: chatData['lastMessage'],
-              userId: userId,
+          return Stream.value(
+            ChatDisplay(
+              id: chatDoc.id,
+              name: chatData['name'] as String,
+              photoUrl: chatData['photoUrl'] as String,
+              lastMessage: Message.fromDocument(
+                id: chatData['lastMessageId'] as String,
+                doc: chatData['lastMessage'] as Map<String, dynamic>,
+                userId: userId,
+              ),
             ),
-          ));
+          );
         }
 
         throw Exception('Invalid chat type: ${chatData['type']}');
@@ -387,18 +403,4 @@ class FirestoreDataSource {
   //       .toList(),
   // );
   // }
-}
-
-class ChatDisplay {
-  ChatDisplay({
-    required this.id,
-    required this.name,
-    required this.photoUrl,
-    required this.lastMessage,
-  });
-
-  final String id;
-  final String name;
-  final String photoUrl;
-  final Message lastMessage;
 }

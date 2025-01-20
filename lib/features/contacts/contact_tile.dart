@@ -1,9 +1,9 @@
-import 'package:cynk/features/data/cynk_user.dart';
 import 'package:cynk/features/chats/chat_screen.dart';
+import 'package:cynk/features/data/cynk_user.dart';
 import 'package:flutter/material.dart';
 
 class ContactTile extends StatelessWidget {
-  ContactTile({
+  const ContactTile({
     super.key,
     required this.user,
     required this.onTap,
@@ -22,15 +22,12 @@ class ContactTile extends StatelessWidget {
         title: UserItem(user: user),
         trailing: PopupMenuButton(
           itemBuilder: (context) => [
-            PopupMenuItem(
+            const PopupMenuItem<void>(
               child: Text('View Profile'),
-              onTap: () {
-                print('View Profile');
-              },
             ),
-            PopupMenuItem(
-              child: Text('Remove Contact'),
+            PopupMenuItem<void>(
               onTap: onRemove,
+              child: const Text('Remove Contact'),
             ),
           ],
         ),

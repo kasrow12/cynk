@@ -1,13 +1,15 @@
 import 'dart:async';
 
-import 'package:cynk/features/data/chat.dart';
+import 'package:cynk/features/chats/classes/chat.dart';
 import 'package:cynk/features/data/firestore_data_source.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ChatCubit extends Cubit<ChatState> {
-  ChatCubit(
-      {required this.dataSource, required this.userId, required this.chatId})
-      : super(ChatLoading());
+  ChatCubit({
+    required this.dataSource,
+    required this.userId,
+    required this.chatId,
+  }) : super(ChatLoading());
 
   final FirestoreDataSource dataSource;
   final String userId;
@@ -18,9 +20,12 @@ class ChatCubit extends Cubit<ChatState> {
     _chatSubscription?.cancel();
     emit(ChatLoading());
 
-    _chatSubscription = dataSource.getChat(chatId, userId).listen((chat) {
-      emit(ChatLoaded(chat, userId));
-    }, onError: (error) => emit(ChatError(error.toString())));
+    _chatSubscription = dataSource.getChat(chatId, userId).listen(
+      (chat) {
+        emit(ChatLoaded(chat, userId));
+      },
+      onError: (Object error) => emit(ChatError(error.toString())),
+    );
   }
 
   @override

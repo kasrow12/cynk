@@ -1,4 +1,4 @@
-import 'package:cynk/features/data/message.dart';
+import 'package:cynk/features/chats/classes/message.dart';
 import 'package:flutter/material.dart';
 
 class MessageTile extends StatelessWidget {
@@ -37,7 +37,7 @@ class MessageTile extends StatelessWidget {
                 ),
                 const SizedBox(height: 5),
                 Text(
-                  '${message.time.hour.toString().padLeft(2, '0')}:${message.time.minute.toString().padLeft(2, '0')}',
+                  '${message.date.hour.toString().padLeft(2, '0')}:${message.date.minute.toString().padLeft(2, '0')}',
                   // message.time.toString(),
                   style: TextStyle(
                     color: message.isSentByUser

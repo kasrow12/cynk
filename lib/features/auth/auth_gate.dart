@@ -1,5 +1,5 @@
 import 'package:cynk/features/auth/auth_cubit.dart';
-import 'package:cynk/features/auth/current_user.dart';
+import 'package:cynk/features/auth/classes/current_user.dart';
 import 'package:cynk/features/chats/cubits/chats_cubit.dart';
 import 'package:cynk/screens/login/login_screen.dart';
 import 'package:flutter/material.dart';

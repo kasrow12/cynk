@@ -1,13 +1,15 @@
 import 'dart:async';
 
+import 'package:cynk/features/chats/classes/message.dart';
 import 'package:cynk/features/data/firestore_data_source.dart';
-import 'package:cynk/features/data/message.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class MessagesCubit extends Cubit<MessagesState> {
-  MessagesCubit(
-      {required this.dataSource, required this.userId, required this.chatId})
-      : super(MessagesLoading());
+  MessagesCubit({
+    required this.dataSource,
+    required this.userId,
+    required this.chatId,
+  }) : super(MessagesLoading());
 
   final FirestoreDataSource dataSource;
   final String userId;
@@ -19,10 +21,12 @@ class MessagesCubit extends Cubit<MessagesState> {
     _messagesSubscription?.cancel();
     emit(MessagesLoading());
 
-    _messagesSubscription =
-        dataSource.getMessagesStream(chatId, userId).listen((messages) {
-      emit(MessagesLoaded(messages: messages));
-    }, onError: (error) => emit(MessagesError(error.toString())));
+    _messagesSubscription = dataSource.getMessagesStream(chatId, userId).listen(
+      (messages) {
+        emit(MessagesLoaded(messages: messages));
+      },
+      onError: (Object error) => emit(MessagesError(error.toString())),
+    );
   }
 
   void loadMoreMessages() {
@@ -43,20 +47,23 @@ class MessagesCubit extends Cubit<MessagesState> {
     dataSource
         .getMessages(chatId, userId, lastMessage, _pageSize)
         .then((newMessages) {
-      print('emit new messages');
       if (newMessages.length < _pageSize) {
-        emit(currentState.copyWith(
-          messages: messages + newMessages,
-          hasMore: false,
-          isLoadingMore: false,
-        ));
+        emit(
+          currentState.copyWith(
+            messages: messages + newMessages,
+            hasMore: false,
+            isLoadingMore: false,
+          ),
+        );
       } else {
-        emit(currentState.copyWith(
-          messages: messages + newMessages,
-          isLoadingMore: false,
-        ));
+        emit(
+          currentState.copyWith(
+            messages: messages + newMessages,
+            isLoadingMore: false,
+          ),
+        );
       }
-    }).catchError((error) {
+    }).catchError((Object error) {
       emit(MessagesError(error.toString()));
     });
   }

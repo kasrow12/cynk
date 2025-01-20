@@ -1,5 +1,5 @@
+import 'package:cynk/features/chats/classes/message.dart';
 import 'package:cynk/features/data/cynk_user.dart';
-import 'package:cynk/features/data/message.dart';
 
 sealed class Chat {
   const Chat({

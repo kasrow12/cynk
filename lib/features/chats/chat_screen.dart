@@ -1,9 +1,9 @@
-import 'package:cynk/features/auth/current_user.dart';
-import 'package:cynk/features/chats/cubits/messages_cubit.dart';
-import 'package:cynk/features/data/chat.dart';
-import 'package:cynk/features/data/firestore_data_source.dart';
+import 'package:cynk/features/auth/classes/current_user.dart';
+import 'package:cynk/features/chats/classes/chat.dart';
 import 'package:cynk/features/chats/cubits/chat_cubit.dart';
+import 'package:cynk/features/chats/cubits/messages_cubit.dart';
 import 'package:cynk/features/data/cynk_user.dart';
+import 'package:cynk/features/data/firestore_data_source.dart';
 import 'package:cynk/features/widgets.dart';
 import 'package:cynk/screens/chat/date_separator.dart';
 import 'package:cynk/screens/chat/message_tile.dart';
@@ -15,7 +15,7 @@ import 'package:go_router/go_router.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class ChatScreen extends StatelessWidget {
-  ChatScreen({
+  const ChatScreen({
     required this.chatId,
     super.key,
   });
@@ -38,7 +38,7 @@ class ChatScreen extends StatelessWidget {
                 userId: userId,
                 chat: chat,
               ),
-            ChatError(:final error) => Text(error.toString()),
+            ChatError(:final error) => Text(error),
           };
         },
       ),
@@ -47,7 +47,7 @@ class ChatScreen extends StatelessWidget {
 }
 
 class ChatScreenContent extends StatefulWidget {
-  ChatScreenContent({
+  const ChatScreenContent({
     required this.userId,
     required this.chat,
     super.key,
@@ -64,7 +64,7 @@ class _ChatScreenContentState extends State<ChatScreenContent> {
   final TextEditingController _messageController = TextEditingController();
   late final _focusNode = FocusNode(
     // https://stackoverflow.com/questions/65224279/how-to-support-submission-on-enter-and-newline-on-shift-enter-in-a-textfie
-    onKeyEvent: (FocusNode node, KeyEvent evt) {
+    onKeyEvent: (node, evt) {
       if (!HardwareKeyboard.instance.isShiftPressed &&
           evt.logicalKey.keyLabel == 'Enter') {
         if (evt is KeyDownEvent) {
@@ -94,7 +94,9 @@ class _ChatScreenContentState extends State<ChatScreenContent> {
 
   void _onSubmitted(String text) {
     _focusNode.requestFocus();
-    if (text.isEmpty) return;
+    if (text.isEmpty) {
+      return;
+    }
 
     context.read<FirestoreDataSource>().sendMessage(
           chatId: widget.chat.id,
@@ -125,12 +127,11 @@ class _ChatScreenContentState extends State<ChatScreenContent> {
           PopupMenuButton(
             itemBuilder: (context) {
               return [
-                PopupMenuItem(
-                  child: const Text('Item1'),
-                  onTap: () => print('Item 1 hit'),
+                const PopupMenuItem<void>(
+                  child: Text('Item1'),
                 ),
-                PopupMenuItem(
-                  child: const Text('Item 2'),
+                const PopupMenuItem<void>(
+                  child: Text('Item 2'),
                 ),
               ];
             },
@@ -147,7 +148,7 @@ class _ChatScreenContentState extends State<ChatScreenContent> {
                 chatId: widget.chat.id,
                 userId: widget.userId,
               )..loadMessages(),
-              child: ChatMessages(),
+              child: const ChatMessages(),
             ),
           ),
 
@@ -173,6 +174,11 @@ class _ChatScreenContentState extends State<ChatScreenContent> {
                       ),
                     ),
                   ),
+                ),
+                const SizedBox(width: 10),
+                IconButton(
+                  icon: const Icon(Icons.photo),
+                  onPressed: () => _onSubmitted(_messageController.text),
                 ),
                 const SizedBox(width: 10),
                 IconButton(
@@ -297,8 +303,9 @@ class _ChatMessagesState extends State<ChatMessages> {
 
   @override
   void dispose() {
-    _scrollController.removeListener(_onScroll);
-    _scrollController.dispose();
+    _scrollController
+      ..removeListener(_onScroll)
+      ..dispose();
     super.dispose();
   }
 
@@ -330,26 +337,27 @@ class _ChatMessagesState extends State<ChatMessages> {
                   }
 
                   return MessageTile(
-                      message: messages[index],
-                      key: ValueKey(messages[index].id));
+                    message: messages[index],
+                    key: ValueKey(messages[index].id),
+                  );
                 },
                 separatorBuilder: (context, index) {
                   if (index + 1 >= messages.length) {
-                    return DateSeparator(date: messages[index].time);
+                    return DateSeparator(date: messages[index].date);
                   }
 
                   final current = messages[index];
                   final prev = messages[index + 1];
 
                   // Show date separator if the previous message was sent on a different day
-                  if (prev.time.year != current.time.year ||
-                      prev.time.month != current.time.month ||
-                      prev.time.day != current.time.day) {
-                    return DateSeparator(date: current.time);
+                  if (prev.date.year != current.date.year ||
+                      prev.date.month != current.date.month ||
+                      prev.date.day != current.date.day) {
+                    return DateSeparator(date: current.date);
                   }
 
                   if (prev.isSentByUser == current.isSentByUser &&
-                      current.time.difference(prev.time).inMinutes < 10) {
+                      current.date.difference(prev.date).inMinutes < 10) {
                     return const SizedBox(height: 3);
                   } else {
                     return const SizedBox(height: 8);
@@ -365,7 +373,7 @@ class _ChatMessagesState extends State<ChatMessages> {
                 ),
             ],
           ),
-        MessagesError(:final error) => Text(error.toString()),
+        MessagesError(:final error) => Text(error),
       },
     );
   }

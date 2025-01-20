@@ -59,7 +59,7 @@ class _LoginScreenState extends State<LoginScreen> {
             ),
             _SignInButton(
               enabled: state is SignedOutState,
-              onSignIn: () => authCubit.signInWithGoogle(),
+              onSignIn: authCubit.signInWithGoogle,
             ),
           ],
         ),
