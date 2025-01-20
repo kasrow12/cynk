@@ -4,12 +4,12 @@ import 'package:cynk/features/data/chat.dart';
 import 'package:cynk/features/data/firestore_data_source.dart';
 import 'package:cynk/features/chats/cubits/chat_cubit.dart';
 import 'package:cynk/features/data/cynk_user.dart';
-import 'package:cynk/features/auth/auth_cubit.dart';
 import 'package:cynk/features/widgets.dart';
 import 'package:cynk/screens/chat/date_separator.dart';
 import 'package:cynk/screens/chat/message_tile.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:timeago/timeago.dart' as timeago;
@@ -62,12 +62,25 @@ class ChatScreenContent extends StatefulWidget {
 
 class _ChatScreenContentState extends State<ChatScreenContent> {
   final TextEditingController _messageController = TextEditingController();
-  final FocusNode _focusNode = FocusNode();
+  late final _focusNode = FocusNode(
+    // https://stackoverflow.com/questions/65224279/how-to-support-submission-on-enter-and-newline-on-shift-enter-in-a-textfie
+    onKeyEvent: (FocusNode node, KeyEvent evt) {
+      if (!HardwareKeyboard.instance.isShiftPressed &&
+          evt.logicalKey.keyLabel == 'Enter') {
+        if (evt is KeyDownEvent) {
+          _onSubmitted(_messageController.text);
+        }
+        return KeyEventResult.handled;
+      } else {
+        return KeyEventResult.ignored;
+      }
+    },
+  );
 
   @override
   void initState() {
     super.initState();
-    // check if web/pc platform, if so, request focus, but dont request on mobile
+    // Focus on web, dont focus on mobile, because the keyboard will pop up
     if (kIsWeb) {
       _focusNode.requestFocus();
     }
@@ -145,11 +158,10 @@ class _ChatScreenContentState extends State<ChatScreenContent> {
               children: [
                 Expanded(
                   child: TextField(
-                    // TODO: shift-enter doesnt work on web
-                    // keyboardType: TextInputType.multiline,
+                    keyboardType: TextInputType.multiline,
                     maxLines: null,
-
                     focusNode: _focusNode,
+                    controller: _messageController,
                     decoration: InputDecoration(
                       hintText: 'Message',
                       border: OutlineInputBorder(
@@ -160,8 +172,6 @@ class _ChatScreenContentState extends State<ChatScreenContent> {
                         vertical: 10,
                       ),
                     ),
-                    controller: _messageController,
-                    onSubmitted: _onSubmitted,
                   ),
                 ),
                 const SizedBox(width: 10),
