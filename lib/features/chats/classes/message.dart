@@ -7,6 +7,7 @@ class Message {
     required this.date,
     required this.isSentByUser,
     required this.sender,
+    this.photoUrl = '',
   });
 
   factory Message.fromDocument({
@@ -20,6 +21,7 @@ class Message {
       date: (doc['date'] as Timestamp).toDate(),
       sender: doc['sender'] as String,
       isSentByUser: doc['sender'] == userId,
+      photoUrl: doc['photoUrl'] as String?,
     );
   }
 
@@ -28,4 +30,5 @@ class Message {
   final DateTime date;
   final String sender;
   final bool isSentByUser;
+  final String? photoUrl;
 }

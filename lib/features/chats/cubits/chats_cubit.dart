@@ -23,9 +23,9 @@ class ChatsCubit extends Cubit<ChatsState> {
       (chats) {
         emit(ChatsLoaded(userId, chats));
       },
-      onError: (Object error) {
-        emit(ChatsError(error.toString()));
-      },
+      // onError: (Object error) {
+      //   emit(ChatsError(error.toString()));
+      // },
     );
   }
 

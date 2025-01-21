@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cynk/features/auth/auth_cubit.dart';
 import 'package:cynk/features/chats/classes/chat.dart';
 import 'package:cynk/features/chats/cubits/chats_cubit.dart';
@@ -91,7 +92,7 @@ class ChatEntry extends StatelessWidget {
       child: ListTile(
         leading: CircleAvatar(
           radius: 24,
-          backgroundImage: NetworkImage(
+          backgroundImage: CachedNetworkImageProvider(
             switch (chat) {
               PrivateChat(:final otherUser) => otherUser.photoUrl,
               GroupChat(:final photoUrl) => photoUrl,

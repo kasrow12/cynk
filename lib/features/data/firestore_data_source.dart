@@ -1,3 +1,6 @@
+import 'dart:io';
+import 'dart:typed_data';
+
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cynk/constants.dart';
 import 'package:cynk/features/chats/classes/chat.dart';
@@ -5,6 +8,7 @@ import 'package:cynk/features/chats/classes/message.dart';
 import 'package:cynk/features/data/cynk_user.dart';
 import 'package:cynk/utils/private_chat_id.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:rxdart/rxdart.dart';
 
 class FirestoreDataSource {
@@ -200,8 +204,6 @@ class FirestoreDataSource {
     required String message,
     String? photoUrl,
   }) async {
-    final date = DateTime.now();
-
     await db.runTransaction((transaction) async {
       final chatRef = db.collection('chats').doc(chatId);
       final messageRef = chatRef.collection('messages').doc();
@@ -221,7 +223,7 @@ class FirestoreDataSource {
         'id': messageRef.id,
         'sender': userId,
         'text': message,
-        'date': date,
+        'date': FieldValue.serverTimestamp(),
         if (photoUrl != null) 'photoUrl': photoUrl,
       };
 
@@ -231,6 +233,31 @@ class FirestoreDataSource {
           'lastMessage': msg,
         });
     });
+  }
+
+  Future<void> sendPhotoMessage({
+    required String chatId,
+    required String userId,
+    required XFile image,
+    required String fileName,
+  }) async {
+    final storagePath = 'chats/$chatId/images/$fileName';
+    final fileData = await image.readAsBytes();
+
+    // Upload to Firebase Storage
+    final storageRef = FirebaseStorage.instance.ref().child(storagePath);
+    final uploadTask = await storageRef.putData(fileData);
+
+    if (uploadTask.state == TaskState.success) {
+      final downloadUrl = await storageRef.getDownloadURL();
+
+      await sendMessage(
+        chatId: chatId,
+        userId: userId,
+        message: 'Photo',
+        photoUrl: downloadUrl,
+      );
+    }
   }
 
   // Future<Map<String, CynkUser>> fetchUsers(List<String> userIds) async {
@@ -405,10 +432,6 @@ class FirestoreDataSource {
         },
       );
     });
-  }
-
-  Future<void> sendFirstMessage(String chatId, String userId, String message) {
-    return db.runTransaction((transaction) async {});
   }
 
   // Future<List<Message>> getChat(String chatId) async {

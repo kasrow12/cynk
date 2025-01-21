@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cynk/features/chats/classes/chat.dart';
 import 'package:cynk/features/chats/cubits/chats_cubit.dart';
 import 'package:cynk/features/chats/cubits/messages_cubit.dart';
@@ -11,6 +12,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class ChatScreen extends StatelessWidget {
@@ -77,6 +79,8 @@ class _ChatScreenContentState extends State<ChatScreenContent> {
     },
   );
 
+  bool _isUploading = false;
+
   @override
   void initState() {
     super.initState();
@@ -90,6 +94,45 @@ class _ChatScreenContentState extends State<ChatScreenContent> {
   void dispose() {
     _messageController.dispose();
     super.dispose();
+  }
+
+  Future<void> _onImageSelected() async {
+    try {
+      // Pick image
+      final picker = ImagePicker();
+      final image = await picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1024,
+        maxHeight: 1024,
+        imageQuality: 85,
+      );
+
+      if (image == null) {
+        return;
+      }
+
+      setState(() {
+        _isUploading = true;
+      });
+
+      // Create unique filename
+      final fileName =
+          '${DateTime.now().millisecondsSinceEpoch}_${image.path.split('/').last}';
+
+      await context.read<FirestoreDataSource>().sendPhotoMessage(
+            chatId: widget.chat.id,
+            userId: widget.userId,
+            image: image,
+            fileName: fileName,
+          );
+    } on PlatformException catch (e) {
+      ScaffoldMessenger.of(context)
+          .showSnackBar(SnackBar(content: Text(e.toString())));
+    } finally {
+      setState(() {
+        _isUploading = false; // Set uploading back to false
+      });
+    }
   }
 
   void _onSubmitted(String text) {
@@ -175,12 +218,23 @@ class _ChatScreenContentState extends State<ChatScreenContent> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 10),
-                IconButton(
-                  icon: const Icon(Icons.photo),
-                  onPressed: () => _onSubmitted(_messageController.text),
+                const SizedBox(width: 4),
+                Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.photo),
+                      onPressed: _isUploading ? null : _onImageSelected,
+                    ),
+                    if (_isUploading)
+                      const SizedBox(
+                        width: 24,
+                        height: 24,
+                        child: CircularProgressIndicator(strokeWidth: 2),
+                      ),
+                  ],
                 ),
-                const SizedBox(width: 10),
+                if (kIsWeb) const SizedBox(width: 6),
                 IconButton(
                   icon: const Icon(Icons.send),
                   onPressed: () => _onSubmitted(_messageController.text),
@@ -212,7 +266,7 @@ class CynkTile extends StatelessWidget {
       children: [
         CircleAvatar(
           radius: 20,
-          backgroundImage: NetworkImage(photoUrl),
+          backgroundImage: CachedNetworkImageProvider(photoUrl),
         ),
         const SizedBox(width: 12),
         Expanded(
