@@ -29,7 +29,8 @@ class ChatsScreen extends StatelessWidget {
                       final chat = chats[index];
                       return ChatEntry(
                         chat: chat,
-                        onTap: () => ChatRoute(chatId: chat.id).go(context),
+                        onTap: () =>
+                            ChatRoute(chatId: chat.id).push<ChatRoute>(context),
                       );
                     },
                   )
@@ -62,7 +63,10 @@ class ChatsScreen extends StatelessWidget {
             ),
             ListTile(
               title: const Text('Contacts'),
-              onTap: () => ContactsRoute().go(context),
+              onTap: () {
+                Navigator.pop(context);
+                ContactsRoute().push<ContactsRoute>(context);
+              },
             ),
             ListTile(
               title: const Text('Logout'),

@@ -2,7 +2,6 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cynk/features/chats/classes/message.dart';
 import 'package:cynk/utils/image_dialog.dart';
 import 'package:flutter/material.dart';
-import 'package:photo_view/photo_view.dart';
 
 class MessageTile extends StatelessWidget {
   const MessageTile({
@@ -34,7 +33,8 @@ class MessageTile extends StatelessWidget {
               children: [
                 if (message.photoUrl != null)
                   GestureDetector(
-                    onTap: () => showImageDialog(context, message.photoUrl!),
+                    onTap: () =>
+                        showImageViewerDialog(context, message.photoUrl!),
                     child: ConstrainedBox(
                       constraints: BoxConstraints(
                         maxWidth: MediaQuery.of(context).size.width *
