@@ -1,1 +1,36 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"cynk-app","appId":"1:410051796583:android:44a894c813de073c02fec2","fileOutput":"android/app/google-services.json"}},"dart":{"lib/firebase_options.dart":{"projectId":"cynk-app","configurations":{"android":"1:410051796583:android:44a894c813de073c02fec2","ios":"1:410051796583:ios:364e1089ec4ac17d02fec2","macos":"1:410051796583:ios:364e1089ec4ac17d02fec2","web":"1:410051796583:web:b9af079789fc03f802fec2","windows":"1:410051796583:web:e675b86579364b9d02fec2"}}}}}}
+{
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "cynk-app",
+          "appId": "1:410051796583:android:44a894c813de073c02fec2",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "cynk-app",
+          "configurations": {
+            "android": "1:410051796583:android:44a894c813de073c02fec2",
+            "ios": "1:410051796583:ios:364e1089ec4ac17d02fec2",
+            "macos": "1:410051796583:ios:364e1089ec4ac17d02fec2",
+            "web": "1:410051796583:web:b9af079789fc03f802fec2",
+            "windows": "1:410051796583:web:e675b86579364b9d02fec2"
+          }
+        }
+      }
+    }
+  },
+  "hosting": {
+    "source": ".",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "frameworksBackend": {
+      "region": "europe-west1"
+    }
+  }
+}

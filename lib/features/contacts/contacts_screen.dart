@@ -61,25 +61,30 @@ class ContactsScreen extends StatelessWidget {
                                   ),
                                   actions: [
                                     TextButton(
-                                      onPressed: () {
+                                      onPressed: () async {
                                         Navigator.of(dialogContext).pop();
                                         try {
-                                          context
+                                          await context
                                               .read<ContactsCubit>()
                                               .removeContact(contact.id);
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(
-                                            const SnackBar(
-                                              content: Text('Contact removed'),
-                                            ),
-                                          );
+                                          if (context.mounted) {
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
+                                              const SnackBar(
+                                                content:
+                                                    Text('Contact removed'),
+                                              ),
+                                            );
+                                          }
                                         } catch (err) {
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(
-                                            SnackBar(
-                                              content: Text(err.toString()),
-                                            ),
-                                          );
+                                          if (context.mounted) {
+                                            ScaffoldMessenger.of(context)
+                                                .showSnackBar(
+                                              SnackBar(
+                                                content: Text(err.toString()),
+                                              ),
+                                            );
+                                          }
                                         }
                                       },
                                       child: const Text(
@@ -124,19 +129,23 @@ class ContactsScreen extends StatelessWidget {
                   ),
                   actions: [
                     TextButton(
-                      onPressed: () {
+                      onPressed: () async {
                         Navigator.of(dialogContext).pop();
                         try {
-                          context
+                          await context
                               .read<ContactsCubit>()
                               .addContact(controller.text);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Contact added')),
-                          );
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              const SnackBar(content: Text('Contact added')),
+                            );
+                          }
                         } catch (err) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(content: Text(err.toString())),
-                          );
+                          if (context.mounted) {
+                            ScaffoldMessenger.of(context).showSnackBar(
+                              SnackBar(content: Text(err.toString())),
+                            );
+                          }
                         }
                       },
                       child: const Text('Add'),

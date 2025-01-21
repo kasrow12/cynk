@@ -23,7 +23,7 @@ class FirestoreDataSource {
         .doc(chatId)
         .collection('messages')
         .orderBy('date', descending: true)
-        .limit(20) // TODO
+        .limit(30) // TODO
         .snapshots()
         .map(
           (snapshot) => snapshot.docs

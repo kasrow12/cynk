@@ -15,7 +15,8 @@ class MessagesCubit extends Cubit<MessagesState> {
   final String userId;
   final String chatId;
   StreamSubscription<List<Message>>? _messagesSubscription;
-  static const int _pageSize = 20;
+
+  static const int _pageSize = 30;
 
   void loadMessages() {
     _messagesSubscription?.cancel();
@@ -29,7 +30,7 @@ class MessagesCubit extends Cubit<MessagesState> {
     );
   }
 
-  void loadMoreMessages() {
+  Future<void> loadMoreMessages() async {
     if (state is! MessagesLoaded) {
       return;
     }
@@ -44,7 +45,7 @@ class MessagesCubit extends Cubit<MessagesState> {
     final messages = currentState.messages;
     final lastMessage = messages.last;
 
-    dataSource
+    return dataSource
         .getMessages(chatId, userId, lastMessage, _pageSize)
         .then((newMessages) {
       if (newMessages.length < _pageSize) {

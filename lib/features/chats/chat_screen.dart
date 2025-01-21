@@ -98,7 +98,10 @@ class _ChatScreenContentState extends State<ChatScreenContent> {
 
   Future<void> _onImageSelected() async {
     try {
-      // Pick image
+      if (_isUploading) {
+        return;
+      }
+
       final picker = ImagePicker();
       final image = await picker.pickImage(
         source: ImageSource.gallery,
@@ -130,7 +133,7 @@ class _ChatScreenContentState extends State<ChatScreenContent> {
           .showSnackBar(SnackBar(content: Text(e.toString())));
     } finally {
       setState(() {
-        _isUploading = false; // Set uploading back to false
+        _isUploading = false;
       });
     }
   }
@@ -380,9 +383,9 @@ class _ChatMessagesState extends State<ChatMessages> {
               ListView.separated(
                 controller: _scrollController,
                 reverse: true,
-                // shrinkWrap: true,
                 padding: const EdgeInsets.symmetric(horizontal: 10),
                 itemCount: messages.length + 1,
+                // physics: const FixedExtentScrollPhysics(),
                 // +1 for the first message date
                 itemBuilder: (context, index) {
                   // Allows for the date separator before the first message
