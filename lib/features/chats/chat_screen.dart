@@ -28,8 +28,8 @@ class ChatScreen extends StatelessWidget {
     return BlocBuilder<ChatsCubit, ChatsState>(
       builder: (context, state) {
         if (state is ChatsLoaded) {
-          // Chat not found
           if (!state.chats.any((chat) => chat.id == chatId)) {
+            // Chat not found
             context.read<ChatsCubit>().createPrivateChat(chatId);
             return const Center(child: CircularProgressIndicator());
           }
@@ -156,10 +156,6 @@ class _ChatScreenContentState extends State<ChatScreenContent> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
-          onPressed: () => context.pop(),
-        ),
         title: switch (widget.chat) {
           PrivateChat(:final otherUser) => UserItem(user: otherUser),
           GroupChat(:final name, :final photoUrl, :final members) => GroupItem(
@@ -196,7 +192,6 @@ class _ChatScreenContentState extends State<ChatScreenContent> {
               child: const ChatMessages(),
             ),
           ),
-
           // Input box
           Padding(
             padding: const EdgeInsets.all(10),

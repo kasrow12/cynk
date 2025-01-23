@@ -22,17 +22,16 @@ class ContactTile extends StatelessWidget {
         title: UserItem(user: user),
         trailing: PopupMenuButton(
           itemBuilder: (context) => [
-            const PopupMenuItem<void>(
-              child: Text('View Profile'),
-            ),
+            // const PopupMenuItem<void>(
+            //   child: Text('View Profile'),
+            // ),
             PopupMenuItem<void>(
               onTap: onRemove,
               child: const Text('Remove Contact'),
             ),
           ],
         ),
-        // change padding
-        contentPadding: const EdgeInsets.only(left: 8),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 16),
       ),
     );
   }

@@ -26,6 +26,7 @@ class ContactsCubit extends Cubit<ContactsState> {
           );
         emit(
           ContactsLoaded(
+            userId: userId,
             allContacts: contacts,
             filteredContacts: sorted,
           ),
@@ -58,6 +59,7 @@ class ContactsCubit extends Cubit<ContactsState> {
         ..sort((a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()));
       emit(
         ContactsLoaded(
+          userId: userId,
           allContacts: contacts,
           filteredContacts: filtered,
         ),
@@ -71,8 +73,13 @@ sealed class ContactsState {}
 class ContactsLoading extends ContactsState {}
 
 class ContactsLoaded extends ContactsState {
-  ContactsLoaded({required this.allContacts, required this.filteredContacts});
+  ContactsLoaded({
+    required this.userId,
+    required this.allContacts,
+    required this.filteredContacts,
+  });
 
+  final String userId;
   final List<CynkUser> allContacts;
   final List<CynkUser> filteredContacts;
 }
