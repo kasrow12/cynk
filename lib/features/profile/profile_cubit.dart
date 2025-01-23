@@ -1,19 +1,23 @@
 import 'package:bloc/bloc.dart';
 import 'package:cynk/features/data/cynk_user.dart';
+import 'package:cynk/features/data/firestore_data_source.dart';
 
 class ProfileCubit extends Cubit<ProfileState> {
-  ProfileCubit() : super(ProfileLoading());
+  ProfileCubit({required this.dataSource, required this.userId})
+      : super(ProfileLoading());
+
+  final FirestoreDataSource dataSource;
+  final String userId;
 
   void loadProfile() {
-    emit(ProfileLoaded(
-        user: CynkUser(
-      id: '1',
-      name: 'John Doe',
-      email: 'sdafsd',
-      photoUrl:
-          'https://upload.wikimedia.org/wikipedia/commons/thumb/9/9e/Random_Turtle.jpg/2560px-Random_Turtle.jpg',
-      lastSeen: DateTime.now(),
-    )));
+    dataSource.getUserStream(userId).listen(
+      (user) {
+        emit(ProfileLoaded(user: user));
+      },
+      onError: (Object error) {
+        emit(ProfileError(error.toString()));
+      },
+    );
   }
 }
 

@@ -1,5 +1,7 @@
+import 'package:cynk/features/auth/auth_cubit.dart';
 import 'package:cynk/features/chats/chat_screen.dart';
 import 'package:cynk/features/chats/chats_screen.dart';
+import 'package:cynk/features/contacts/contacts_cubit.dart';
 import 'package:cynk/features/contacts/contacts_screen.dart';
 import 'package:cynk/features/profile/profile_cubit.dart';
 import 'package:cynk/features/profile/profile_screen.dart';
@@ -44,7 +46,13 @@ class ChatRoute extends GoRouteData {
 class ContactsRoute extends GoRouteData {
   @override
   Widget build(BuildContext context, GoRouterState state) {
-    return const ContactsScreen();
+    return BlocProvider(
+      create: (context) => ContactsCubit(
+        dataSource: context.read(),
+        userId: (context.read<AuthCubit>().state as SignedInState).userId,
+      )..loadContacts(),
+      child: const ContactsScreen(),
+    );
   }
 }
 
@@ -52,7 +60,10 @@ class ProfileRoute extends GoRouteData {
   @override
   Widget build(BuildContext context, GoRouterState state) {
     return BlocProvider(
-      create: (context) => ProfileCubit()..loadProfile(),
+      create: (context) => ProfileCubit(
+        dataSource: context.read(),
+        userId: (context.read<AuthCubit>().state as SignedInState).userId,
+      )..loadProfile(),
       child: const ProfileScreen(),
     );
   }

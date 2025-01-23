@@ -65,6 +65,14 @@ class FirestoreDataSource {
     return messages;
   }
 
+  Stream<CynkUser> getUserStream(String userId) {
+    return db
+        .collection('users')
+        .doc(userId)
+        .snapshots()
+        .map((doc) => CynkUser.fromDocument(doc.id, doc.data()!));
+  }
+
   Stream<List<CynkUser>> getContactsStream(String userId) {
     // Stream of contact IDs
     final contactIdsStream = db

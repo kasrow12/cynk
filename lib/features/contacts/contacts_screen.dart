@@ -15,34 +15,34 @@ class ContactsScreen extends StatelessWidget {
     final userId =
         (context.read<AuthCubit>().state as SignedInState).userId; // TODO: git?
 
-    return BlocProvider(
-      create: (context) => ContactsCubit(
-        dataSource: context.read(),
-        userId: userId,
-      )..loadContacts(),
-      child: Scaffold(
-        appBar: AppBar(
-          title: const Text('Contacts'),
-          leading: IconButton(
-            icon: const Icon(Icons.arrow_back),
-            onPressed: () => context.pop(),
-          ),
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Contacts'),
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => context.pop(),
         ),
-        body: BlocBuilder<ContactsCubit, ContactsState>(
-          builder: (context, state) {
-            return switch (state) {
-              ContactsLoading() =>
-                const Center(child: CircularProgressIndicator()),
-              ContactsLoaded(:final filteredContacts) => CustomScrollView(
-                  slivers: [
-                    SliverPersistentHeader(
+      ),
+      body: BlocBuilder<ContactsCubit, ContactsState>(
+        builder: (context, state) {
+          return switch (state) {
+            ContactsLoading() =>
+              const Center(child: CircularProgressIndicator()),
+            ContactsLoaded(:final filteredContacts) => CustomScrollView(
+                slivers: [
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    sliver: SliverPersistentHeader(
                       pinned: true,
                       delegate: _SearchBarDelegate(
                         onChanged: (value) =>
                             context.read<ContactsCubit>().searchContacts(value),
                       ),
                     ),
-                    SliverList.builder(
+                  ),
+                  SliverPadding(
+                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                    sliver: SliverList.builder(
                       itemBuilder: (context, index) {
                         final contact = filteredContacts[index];
                         return ContactTile(
@@ -107,57 +107,57 @@ class ContactsScreen extends StatelessWidget {
                       },
                       itemCount: filteredContacts.length,
                     ),
-                  ],
-                ),
-              ContactsError(:final error) => Center(child: Text(error)),
-            };
-          },
-        ),
-        floatingActionButton: BlocBuilder<ContactsCubit, ContactsState>(
-          builder: (context, _) => FloatingActionButton(
-            onPressed: () => showDialog<void>(
-              context: context,
-              builder: (dialogContext) {
-                final controller = TextEditingController();
-                return AlertDialog(
-                  title: const Text('Add Contact'),
-                  content: TextField(
-                    controller: controller,
-                    decoration: const InputDecoration(
-                      hintText: 'Enter contact ID',
-                    ),
                   ),
-                  actions: [
-                    TextButton(
-                      onPressed: () async {
-                        Navigator.of(dialogContext).pop();
-                        try {
-                          await context
-                              .read<ContactsCubit>()
-                              .addContact(controller.text);
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Contact added')),
-                            );
-                          }
-                        } catch (err) {
-                          if (context.mounted) {
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              SnackBar(content: Text(err.toString())),
-                            );
-                          }
+                ],
+              ),
+            ContactsError(:final error) => Center(child: Text(error)),
+          };
+        },
+      ),
+      floatingActionButton: BlocBuilder<ContactsCubit, ContactsState>(
+        builder: (context, _) => FloatingActionButton(
+          onPressed: () => showDialog<void>(
+            context: context,
+            builder: (dialogContext) {
+              final controller = TextEditingController();
+              return AlertDialog(
+                title: const Text('Add Contact'),
+                content: TextField(
+                  controller: controller,
+                  decoration: const InputDecoration(
+                    hintText: 'Enter contact ID',
+                  ),
+                ),
+                actions: [
+                  TextButton(
+                    onPressed: () async {
+                      Navigator.of(dialogContext).pop();
+                      try {
+                        await context
+                            .read<ContactsCubit>()
+                            .addContact(controller.text);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(content: Text('Contact added')),
+                          );
                         }
-                      },
-                      child: const Text('Add'),
-                    ),
-                  ],
-                );
-              },
-            ),
-            shape: const CircleBorder(),
-            tooltip: 'Add Contact',
-            child: const Icon(Icons.add),
+                      } catch (err) {
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(content: Text(err.toString())),
+                          );
+                        }
+                      }
+                    },
+                    child: const Text('Add'),
+                  ),
+                ],
+              );
+            },
           ),
+          shape: const CircleBorder(),
+          tooltip: 'Add Contact',
+          child: const Icon(Icons.add),
         ),
       ),
     );

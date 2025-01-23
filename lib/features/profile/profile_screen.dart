@@ -1,6 +1,8 @@
 import 'dart:io';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cynk/features/data/cynk_user.dart';
 import 'package:cynk/features/profile/profile_cubit.dart';
+import 'package:cynk/features/widgets.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
@@ -65,87 +67,91 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ProfileCubit, ProfileState>(
-      builder: (context, state) => switch (state) {
-        ProfileLoading() => const Scaffold(
-            body: Center(
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Profile'),
+      ),
+      body: BlocBuilder<ProfileCubit, ProfileState>(
+        builder: (context, state) => switch (state) {
+          ProfileLoading() => const Center(
               child: CircularProgressIndicator(),
             ),
-          ),
-        ProfileError(:final error) => Scaffold(
-            body: Center(
+          ProfileError(:final error) => Center(
               child: Text('Error: $error'),
             ),
-          ),
-        ProfileLoaded(:final user) => Scaffold(
-            appBar: AppBar(
-              title: const Text('Profile'),
-            ),
-            body: SingleChildScrollView(
+          ProfileLoaded(:final user) => SingleChildScrollView(
               child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Column(
-                  children: [
-                    const SizedBox(height: 20),
-                    Stack(
-                      children: [
-                        CircleAvatar(
-                          radius: 60,
-                          backgroundImage: _imageFile != null
-                              ? FileImage(_imageFile!)
-                              : NetworkImage(user.photoUrl) as ImageProvider,
-                        ),
-                        Positioned(
-                          bottom: 0,
-                          right: 0,
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Theme.of(context).primaryColor,
-                              shape: BoxShape.circle,
-                            ),
-                            child: IconButton(
-                              icon: const Icon(
-                                Icons.camera_alt,
-                                color: Colors.white,
+                padding: const EdgeInsets.symmetric(horizontal: 32),
+                child: SizedBox(
+                  width: double.infinity,
+                  child: Column(
+                    children: [
+                      Stack(
+                        children: [
+                          CircleAvatar(
+                            radius: 100,
+                            backgroundImage:
+                                CachedNetworkImageProvider(user.photoUrl),
+                          ),
+                          Positioned(
+                            bottom: 8,
+                            right: 8,
+                            child: DecoratedBox(
+                              decoration: BoxDecoration(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .secondaryContainer,
+                                shape: BoxShape.circle,
                               ),
-                              onPressed: _pickImage,
+                              child: IconButton(
+                                icon: const Padding(
+                                  padding: EdgeInsets.all(4),
+                                  child: Icon(Icons.camera_alt),
+                                ),
+                                onPressed: _pickImage,
+                                iconSize: 32,
+                                tooltip: 'Change photo',
+                              ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          user.name,
-                          style: const TextStyle(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.edit),
-                          onPressed: () => _showEditNameDialog(user),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      user.email,
-                      style: TextStyle(
-                        fontSize: 16,
-                        color: Colors.grey[600],
+                        ],
                       ),
-                    ),
-                    const SizedBox(height: 32),
-                  ],
+                      const SizedBox(height: 20),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Flexible(
+                            child: TrimmedText(
+                              text: user.name,
+                              style: const TextStyle(
+                                fontSize: 24,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          IconButton(
+                            icon: const Icon(Icons.edit),
+                            onPressed: () => _showEditNameDialog(user),
+                            tooltip: 'Edit username',
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        user.email,
+                        style: TextStyle(
+                          fontSize: 16,
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                      const SizedBox(height: 32),
+                    ],
+                  ),
                 ),
               ),
             ),
-          ),
-      },
+        },
+      ),
     );
   }
 

@@ -5,10 +5,13 @@
 ## TODO
 - Login ui
 - Register ui
-- Viewing profile
-- Infinite scrolling (pagination of messages)
+- Viewing profiles
 - Last seen
 - Message read
-- Creation of chats
+- Creation of group chats
+- Editing profile
+- intl
+- tests
+- push notifications
 
-- make chats get Chatbase instead of Chat with CynkUsers
+
