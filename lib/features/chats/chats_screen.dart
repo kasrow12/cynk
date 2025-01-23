@@ -62,6 +62,13 @@ class ChatsScreen extends StatelessWidget {
               ),
             ),
             ListTile(
+              title: const Text('Profile'),
+              onTap: () {
+                Navigator.pop(context);
+                ProfileRoute().push<ProfileRoute>(context);
+              },
+            ),
+            ListTile(
               title: const Text('Contacts'),
               onTap: () {
                 Navigator.pop(context);

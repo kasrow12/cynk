@@ -6,6 +6,7 @@ class CynkUser {
     required this.name,
     required this.photoUrl,
     required this.lastSeen,
+    required this.email,
   });
 
   factory CynkUser.fromDocument(String id, Map<String, dynamic> doc) {
@@ -14,6 +15,7 @@ class CynkUser {
       name: doc['name'] as String,
       photoUrl: doc['photoUrl'] as String,
       lastSeen: (doc['lastSeen'] as Timestamp).toDate(),
+      email: doc['email'] as String,
     );
   }
 
@@ -21,4 +23,5 @@ class CynkUser {
   final String name;
   final String photoUrl;
   final DateTime lastSeen;
+  final String email;
 }

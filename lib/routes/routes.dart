@@ -1,7 +1,10 @@
 import 'package:cynk/features/chats/chat_screen.dart';
 import 'package:cynk/features/chats/chats_screen.dart';
 import 'package:cynk/features/contacts/contacts_screen.dart';
+import 'package:cynk/features/profile/profile_cubit.dart';
+import 'package:cynk/features/profile/profile_screen.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 
 part 'routes.g.dart';
@@ -14,6 +17,9 @@ part 'routes.g.dart';
     ),
     TypedGoRoute<ContactsRoute>(
       path: '/contacts',
+    ),
+    TypedGoRoute<ProfileRoute>(
+      path: '/profile',
     ),
   ],
 )
@@ -39,5 +45,15 @@ class ContactsRoute extends GoRouteData {
   @override
   Widget build(BuildContext context, GoRouterState state) {
     return const ContactsScreen();
+  }
+}
+
+class ProfileRoute extends GoRouteData {
+  @override
+  Widget build(BuildContext context, GoRouterState state) {
+    return BlocProvider(
+      create: (context) => ProfileCubit()..loadProfile(),
+      child: const ProfileScreen(),
+    );
   }
 }
