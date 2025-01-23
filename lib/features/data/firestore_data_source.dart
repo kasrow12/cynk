@@ -20,7 +20,7 @@ class FirestoreDataSource {
         .doc(chatId)
         .collection('messages')
         .orderBy('date', descending: true)
-        .limit(30) // TODO
+        .limit(INITIAL_MESSAGES_LOAD_LIMIT)
         .snapshots()
         .map(
           (snapshot) => snapshot.docs
@@ -39,7 +39,6 @@ class FirestoreDataSource {
     String chatId,
     String userId,
     Message lastMessage,
-    int limit,
   ) async {
     final messages = await db
         .collection('chats')
@@ -47,7 +46,7 @@ class FirestoreDataSource {
         .collection('messages')
         .orderBy('date', descending: true)
         .startAfter([lastMessage.date])
-        .limit(limit)
+        .limit(MESSAGES_LOAD_LIMIT)
         .get()
         .then((value) => value.docs)
         .then(
@@ -73,8 +72,37 @@ class FirestoreDataSource {
         .map((doc) => CynkUser.fromDocument(doc.id, doc.data()!));
   }
 
+  Future<void> updatePhoto(String userId, XFile image) async {
+    final storagePath = 'users/$userId/profile.jpg';
+    final fileData = await image.readAsBytes();
+
+    final storageRef = FirebaseStorage.instance.ref().child(storagePath);
+    final uploadTask = await storageRef.putData(fileData);
+
+    if (uploadTask.state == TaskState.success) {
+      final url = await storageRef.getDownloadURL();
+
+      await db.collection('users').doc(userId).update({
+        'photoUrl': url,
+      });
+    }
+  }
+
+  Future<void> updateName(String userId, String name) {
+    if (name.isEmpty) {
+      throw Exception('Name cannot be empty');
+    }
+
+    if (name.length > MAX_NAME_LENGTH) {
+      throw Exception('Name is too long');
+    }
+
+    return db.collection('users').doc(userId).update({
+      'name': name,
+    });
+  }
+
   Stream<List<CynkUser>> getContactsStream(String userId) {
-    // Stream of contact IDs
     final contactIdsStream = db
         .collection('users')
         .doc(userId)
@@ -106,6 +134,15 @@ class FirestoreDataSource {
     required String message,
     String? photoUrl,
   }) async {
+    message = message.trim();
+    if (message.isEmpty && photoUrl == null) {
+      return;
+    }
+
+    if (message.length > MAX_MESSAGE_LENGTH) {
+      throw Exception('Message is too long');
+    }
+
     await db.runTransaction((transaction) async {
       final chatRef = db.collection('chats').doc(chatId);
       final messageRef = chatRef.collection('messages').doc();
@@ -113,7 +150,7 @@ class FirestoreDataSource {
       final msg = {
         'id': messageRef.id,
         'sender': userId,
-        'text': message,
+        'text': message.trim(),
         'date': FieldValue.serverTimestamp(),
         if (photoUrl != null) 'photoUrl': photoUrl,
       };
@@ -130,8 +167,10 @@ class FirestoreDataSource {
     required String chatId,
     required String userId,
     required XFile image,
-    required String fileName,
   }) async {
+    final fileName =
+        '${DateTime.now().millisecondsSinceEpoch}_${image.path.split('/').last}';
+
     final storagePath = 'chats/$chatId/images/$fileName';
     final fileData = await image.readAsBytes();
 
@@ -149,23 +188,6 @@ class FirestoreDataSource {
       );
     }
   }
-
-  // Future<Map<String, CynkUser>> fetchUsers(List<String> userIds) async {
-  //   if (userIds.isEmpty) {
-  //     return {};
-  //   }
-  //   final users = await db
-  //       .collection('users')
-  //       .where(FieldPath.documentId, whereIn: userIds)
-  //       .get();
-
-  //   // Return dictionary of uid: CynkUser
-  //   return Map.fromEntries(
-  //     users.docs.map(
-  //       (doc) => MapEntry(doc.id, CynkUser.fromDocument(doc.id, doc.data())),
-  //     ),
-  //   );
-  // }
 
   Future<void> addContact(String userId, String id) async {
     if (userId == id) {
@@ -221,7 +243,6 @@ class FirestoreDataSource {
         final chatData = chatDoc.data();
 
         if (chatData['type'] == 'private') {
-          // For private chats, get the other user's name and photo
           final otherUserId = (chatData['members'] as List<dynamic>)
               .firstWhere((uid) => uid != userId)
               .toString();
@@ -300,8 +321,8 @@ class FirestoreDataSource {
           'type': 'private',
           'members': [userId, otherUserId],
           'lastMessage': {
-            'id': FIRST_MESSAGE_ID,
-            'date': DateTime.now(),
+            'id': '-',
+            'date': FieldValue.serverTimestamp(),
             'sender': userId,
             'text': 'Chat created',
           },

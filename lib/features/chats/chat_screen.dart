@@ -3,7 +3,6 @@ import 'package:cynk/features/chats/classes/chat.dart';
 import 'package:cynk/features/chats/cubits/chats_cubit.dart';
 import 'package:cynk/features/chats/cubits/messages_cubit.dart';
 import 'package:cynk/features/data/cynk_user.dart';
-import 'package:cynk/features/data/firestore_data_source.dart';
 import 'package:cynk/features/widgets.dart';
 import 'package:cynk/screens/chat/date_separator.dart';
 import 'package:cynk/screens/chat/message_tile.dart';
@@ -11,7 +10,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
@@ -70,7 +68,7 @@ class _ChatScreenContentState extends State<ChatScreenContent> {
       if (!HardwareKeyboard.instance.isShiftPressed &&
           evt.logicalKey.keyLabel == 'Enter') {
         if (evt is KeyDownEvent) {
-          _onSubmitted(_messageController.text);
+          _onSubmitted();
         }
         return KeyEventResult.handled;
       } else {
@@ -97,6 +95,9 @@ class _ChatScreenContentState extends State<ChatScreenContent> {
   }
 
   Future<void> _onImageSelected() async {
+    final messenger = ScaffoldMessenger.of(context);
+    final cubit = context.read<MessagesCubit>();
+
     try {
       if (_isUploading) {
         return;
@@ -118,19 +119,9 @@ class _ChatScreenContentState extends State<ChatScreenContent> {
         _isUploading = true;
       });
 
-      // Create unique filename
-      final fileName =
-          '${DateTime.now().millisecondsSinceEpoch}_${image.path.split('/').last}';
-
-      await context.read<FirestoreDataSource>().sendPhotoMessage(
-            chatId: widget.chat.id,
-            userId: widget.userId,
-            image: image,
-            fileName: fileName,
-          );
+      await cubit.sendImage(image);
     } on PlatformException catch (e) {
-      ScaffoldMessenger.of(context)
-          .showSnackBar(SnackBar(content: Text(e.toString())));
+      messenger.showSnackBar(SnackBar(content: Text(e.toString())));
     } finally {
       setState(() {
         _isUploading = false;
@@ -138,18 +129,19 @@ class _ChatScreenContentState extends State<ChatScreenContent> {
     }
   }
 
-  void _onSubmitted(String text) {
+  Future<void> _onSubmitted() async {
     _focusNode.requestFocus();
-    if (text.isEmpty) {
+    final message = _messageController.text.trim();
+    final messenger = ScaffoldMessenger.of(context);
+    if (message.isEmpty) {
       return;
     }
-
-    context.read<FirestoreDataSource>().sendMessage(
-          chatId: widget.chat.id,
-          userId: widget.userId,
-          message: text.trim(),
-        );
-    _messageController.clear();
+    try {
+      await context.read<MessagesCubit>().sendMessage(message);
+      _messageController.clear();
+    } catch (err) {
+      messenger.showSnackBar(SnackBar(content: Text(err.toString())));
+    }
   }
 
   @override
@@ -164,33 +156,26 @@ class _ChatScreenContentState extends State<ChatScreenContent> {
               count: members.length,
             ),
         },
-        actions: [
-          PopupMenuButton(
-            itemBuilder: (context) {
-              return [
-                const PopupMenuItem<void>(
-                  child: Text('Item1'),
-                ),
-                const PopupMenuItem<void>(
-                  child: Text('Item 2'),
-                ),
-              ];
-            },
-          ),
-        ],
+        // actions: [
+        //   PopupMenuButton(
+        //     itemBuilder: (context) {
+        //       return [
+        //         const PopupMenuItem<void>(
+        //           child: Text('Item1'),
+        //         ),
+        //         const PopupMenuItem<void>(
+        //           child: Text('Item 2'),
+        //         ),
+        //       ];
+        //     },
+        //   ),
+        // ],
       ),
       body: Column(
         children: [
           // List of messages
-          Expanded(
-            child: BlocProvider(
-              create: (context) => MessagesCubit(
-                dataSource: context.read(),
-                chatId: widget.chat.id,
-                userId: widget.userId,
-              )..loadMessages(),
-              child: const ChatMessages(),
-            ),
+          const Expanded(
+            child: ChatMessages(),
           ),
           // Input box
           Padding(
@@ -215,7 +200,7 @@ class _ChatScreenContentState extends State<ChatScreenContent> {
                     ),
                   ),
                 ),
-                const SizedBox(width: 4),
+                const SizedBox(width: 6),
                 Stack(
                   alignment: Alignment.center,
                   children: [
@@ -231,10 +216,10 @@ class _ChatScreenContentState extends State<ChatScreenContent> {
                       ),
                   ],
                 ),
-                if (kIsWeb) const SizedBox(width: 6),
+                if (kIsWeb) const SizedBox(width: 4),
                 IconButton(
                   icon: const Icon(Icons.send),
-                  onPressed: () => _onSubmitted(_messageController.text),
+                  onPressed: () => _onSubmitted(),
                 ),
               ],
             ),

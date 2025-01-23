@@ -1,5 +1,5 @@
-import 'dart:io';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:cynk/constants.dart';
 import 'package:cynk/features/data/cynk_user.dart';
 import 'package:cynk/features/profile/profile_cubit.dart';
 import 'package:cynk/features/widgets.dart';
@@ -15,52 +15,101 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  File? _imageFile;
+  final _nameController = TextEditingController();
+  final _formkey = GlobalKey<FormState>();
   final ImagePicker _picker = ImagePicker();
-  final TextEditingController _nameController = TextEditingController();
+  bool _isUploading = false;
 
   Future<void> _pickImage() async {
+    final cubit = context.read<ProfileCubit>();
+    final messenger = ScaffoldMessenger.of(context);
+
     try {
-      final XFile? pickedFile =
-          await _picker.pickImage(source: ImageSource.gallery);
-      if (pickedFile != null) {
-        setState(() {
-          _imageFile = File(pickedFile.path);
-        });
+      final image = await _picker.pickImage(
+        source: ImageSource.gallery,
+        maxWidth: 1024,
+        maxHeight: 1024,
+      );
+
+      if (image == null) {
+        return;
       }
-    } catch (e) {
-      debugPrint('Error picking image: $e');
+
+      setState(() {
+        _isUploading = true;
+      });
+
+      await cubit.updatePhoto(image);
+
+      messenger.showSnackBar(
+        const SnackBar(content: Text('Photo uploaded successfully')),
+      );
+    } catch (err) {
+      messenger.showSnackBar(
+        SnackBar(content: Text('Failed to upload photo: $err')),
+      );
+    } finally {
+      setState(() {
+        _isUploading = false;
+      });
     }
   }
 
-  void _showEditNameDialog(CynkUser user) {
+  void _showEditNameDialog(CynkUser user, void Function(String) onSave) {
     _nameController.text = user.name;
     showDialog<void>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Edit Username'),
-        content: TextField(
-          controller: _nameController,
-          decoration: const InputDecoration(
-            labelText: 'Username',
-            border: OutlineInputBorder(),
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Cancel'),
-          ),
-          TextButton(
-            onPressed: () {
-              setState(() {
-                print('Updating username to: ${_nameController.text}');
-              });
-              Navigator.pop(context);
-            },
-            child: const Text('Save'),
-          ),
-        ],
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            title: const Text('Edit Username'),
+            content: Form(
+              autovalidateMode: AutovalidateMode.always,
+              key: _formkey,
+              child: TextFormField(
+                validator: (value) {
+                  if (value == null ||
+                      value.isEmpty ||
+                      value.trim().length < 3) {
+                    return 'Username must be at least 3 characters long';
+                  }
+                  if (value.trim().length > MAX_NAME_LENGTH) {
+                    return 'Username must be at most $MAX_NAME_LENGTH characters long';
+                  }
+                  return null;
+                },
+                controller: _nameController,
+                decoration: const InputDecoration(
+                  labelText: 'Username',
+                  border: OutlineInputBorder(),
+                  errorMaxLines: 2,
+                ),
+              ),
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(context),
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  try {
+                    onSave(_nameController.text.trim());
+                    Navigator.pop(context);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Name updated')),
+                    );
+                  } catch (err) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text(err.toString())),
+                    );
+                  }
+                },
+                child: const Text('Save'),
+              ),
+            ],
+          );
+        },
       ),
     );
   }
@@ -93,6 +142,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
                             backgroundImage:
                                 CachedNetworkImageProvider(user.photoUrl),
                           ),
+                          if (_isUploading)
+                            const Positioned(
+                              top: 0,
+                              left: 0,
+                              right: 0,
+                              bottom: 0,
+                              child: Center(
+                                child: CircularProgressIndicator(),
+                              ),
+                            ),
                           Positioned(
                             bottom: 8,
                             right: 8,
@@ -104,11 +163,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 shape: BoxShape.circle,
                               ),
                               child: IconButton(
-                                icon: const Padding(
-                                  padding: EdgeInsets.all(4),
-                                  child: Icon(Icons.camera_alt),
-                                ),
-                                onPressed: _pickImage,
+                                icon: const Icon(Icons.camera_alt),
+                                onPressed: _isUploading ? null : _pickImage,
                                 iconSize: 32,
                                 tooltip: 'Change photo',
                               ),
@@ -131,7 +187,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
                           ),
                           IconButton(
                             icon: const Icon(Icons.edit),
-                            onPressed: () => _showEditNameDialog(user),
+                            onPressed: () => _showEditNameDialog(
+                              user,
+                              (name) =>
+                                  context.read<ProfileCubit>().updateName(name),
+                            ),
                             tooltip: 'Edit username',
                           ),
                         ],

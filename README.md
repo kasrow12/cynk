@@ -9,7 +9,6 @@
 - Last seen
 - Message read
 - Creation of group chats
-- Editing profile
 - intl
 - tests
 - push notifications

@@ -124,11 +124,11 @@ class ChatEntry extends StatelessWidget {
             switch (chat) {
           PrivateChat(:final otherUser) => TrimmedText(
               text: (chat.lastMessage.sender == otherUser.id ? '' : 'You: ') +
-                  chat.lastMessage.message,
+                  chat.lastMessage.message.replaceAll('\n', ''),
             ),
           GroupChat(:final members) => TrimmedText(
               text:
-                  '${members.firstWhere((member) => member.id == chat.lastMessage.sender).name}: ${chat.lastMessage.message}',
+                  '${members.firstWhere((member) => member.id == chat.lastMessage.sender).name}: ${chat.lastMessage.message.replaceAll('\n', '')}',
             ),
         },
         trailing: Text(

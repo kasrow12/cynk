@@ -1,8 +1,10 @@
 import 'dart:async';
 
+import 'package:cynk/constants.dart';
 import 'package:cynk/features/chats/classes/message.dart';
 import 'package:cynk/features/data/firestore_data_source.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
 
 class MessagesCubit extends Cubit<MessagesState> {
   MessagesCubit({
@@ -15,8 +17,6 @@ class MessagesCubit extends Cubit<MessagesState> {
   final String userId;
   final String chatId;
   StreamSubscription<List<Message>>? _messagesSubscription;
-
-  static const int _pageSize = 30;
 
   void loadMessages() {
     _messagesSubscription?.cancel();
@@ -46,9 +46,9 @@ class MessagesCubit extends Cubit<MessagesState> {
     final lastMessage = messages.last;
 
     return dataSource
-        .getMessages(chatId, userId, lastMessage, _pageSize)
+        .getMessages(chatId, userId, lastMessage)
         .then((newMessages) {
-      if (newMessages.length < _pageSize) {
+      if (newMessages.length < MESSAGES_LOAD_LIMIT) {
         emit(
           currentState.copyWith(
             messages: messages + newMessages,
@@ -67,6 +67,22 @@ class MessagesCubit extends Cubit<MessagesState> {
     }).catchError((Object error) {
       emit(MessagesError(error.toString()));
     });
+  }
+
+  Future<void> sendMessage(String text) {
+    return dataSource.sendMessage(
+      chatId: chatId,
+      userId: userId,
+      message: text,
+    );
+  }
+
+  Future<void> sendImage(XFile image) {
+    return dataSource.sendPhotoMessage(
+      chatId: chatId,
+      userId: userId,
+      image: image,
+    );
   }
 
   @override

@@ -1,6 +1,7 @@
 import 'package:bloc/bloc.dart';
 import 'package:cynk/features/data/cynk_user.dart';
 import 'package:cynk/features/data/firestore_data_source.dart';
+import 'package:image_picker/image_picker.dart';
 
 class ProfileCubit extends Cubit<ProfileState> {
   ProfileCubit({required this.dataSource, required this.userId})
@@ -18,6 +19,14 @@ class ProfileCubit extends Cubit<ProfileState> {
         emit(ProfileError(error.toString()));
       },
     );
+  }
+
+  Future<void> updateName(String name) {
+    return dataSource.updateName(userId, name);
+  }
+
+  Future<void> updatePhoto(XFile image) {
+    return dataSource.updatePhoto(userId, image);
   }
 }
 

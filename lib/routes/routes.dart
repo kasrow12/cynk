@@ -1,6 +1,7 @@
 import 'package:cynk/features/auth/auth_cubit.dart';
 import 'package:cynk/features/chats/chat_screen.dart';
 import 'package:cynk/features/chats/chats_screen.dart';
+import 'package:cynk/features/chats/cubits/messages_cubit.dart';
 import 'package:cynk/features/contacts/contacts_cubit.dart';
 import 'package:cynk/features/contacts/contacts_screen.dart';
 import 'package:cynk/features/profile/profile_cubit.dart';
@@ -39,7 +40,14 @@ class ChatRoute extends GoRouteData {
 
   @override
   Widget build(BuildContext context, GoRouterState state) {
-    return ChatScreen(chatId: chatId);
+    return BlocProvider(
+      create: (context) => MessagesCubit(
+        dataSource: context.read(),
+        chatId: chatId,
+        userId: (context.read<AuthCubit>().state as SignedInState).userId,
+      )..loadMessages(),
+      child: ChatScreen(chatId: chatId),
+    );
   }
 }
 
