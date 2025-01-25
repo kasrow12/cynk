@@ -78,6 +78,7 @@ class _ChatScreenContentState extends State<ChatScreenContent> {
   );
 
   bool _isUploading = false;
+  bool _isPhotoMessage = false;
 
   @override
   void initState() {
@@ -99,9 +100,13 @@ class _ChatScreenContentState extends State<ChatScreenContent> {
     final cubit = context.read<MessagesCubit>();
 
     try {
-      if (_isUploading) {
+      if (_isUploading || _isPhotoMessage) {
         return;
       }
+
+      setState(() {
+        _isPhotoMessage = true;
+      });
 
       final picker = ImagePicker();
       final image = await picker.pickImage(
@@ -112,6 +117,9 @@ class _ChatScreenContentState extends State<ChatScreenContent> {
       );
 
       if (image == null) {
+        setState(() {
+          _isPhotoMessage = false;
+        });
         return;
       }
 
@@ -125,6 +133,7 @@ class _ChatScreenContentState extends State<ChatScreenContent> {
     } finally {
       setState(() {
         _isUploading = false;
+        _isPhotoMessage = false;
       });
     }
   }
@@ -140,7 +149,9 @@ class _ChatScreenContentState extends State<ChatScreenContent> {
       await context.read<MessagesCubit>().sendMessage(message);
       _messageController.clear();
     } catch (err) {
-      messenger.showSnackBar(SnackBar(content: Text(err.toString())));
+      if (context.mounted) {
+        messenger.showSnackBar(SnackBar(content: Text(err.toString())));
+      }
     }
   }
 
@@ -206,7 +217,7 @@ class _ChatScreenContentState extends State<ChatScreenContent> {
                   children: [
                     IconButton(
                       icon: const Icon(Icons.photo),
-                      onPressed: _isUploading ? null : _onImageSelected,
+                      onPressed: _isPhotoMessage ? null : _onImageSelected,
                     ),
                     if (_isUploading)
                       const SizedBox(
@@ -219,7 +230,7 @@ class _ChatScreenContentState extends State<ChatScreenContent> {
                 if (kIsWeb) const SizedBox(width: 4),
                 IconButton(
                   icon: const Icon(Icons.send),
-                  onPressed: () => _onSubmitted(),
+                  onPressed: _onSubmitted,
                 ),
               ],
             ),

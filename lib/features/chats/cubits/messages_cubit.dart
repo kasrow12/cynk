@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:cynk/constants.dart';
 import 'package:cynk/features/chats/classes/message.dart';
 import 'package:cynk/features/data/firestore_data_source.dart';
+import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -92,9 +93,12 @@ class MessagesCubit extends Cubit<MessagesState> {
   }
 }
 
-sealed class MessagesState {}
+sealed class MessagesState extends Equatable {}
 
-class MessagesLoading extends MessagesState {}
+class MessagesLoading extends MessagesState {
+  @override
+  List<Object?> get props => [];
+}
 
 class MessagesLoaded extends MessagesState {
   MessagesLoaded({
@@ -118,10 +122,16 @@ class MessagesLoaded extends MessagesState {
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
     );
   }
+
+  @override
+  List<Object?> get props => [messages, hasMore, isLoadingMore];
 }
 
 class MessagesError extends MessagesState {
   MessagesError(this.error);
 
   final String error;
+
+  @override
+  List<Object?> get props => [error];
 }

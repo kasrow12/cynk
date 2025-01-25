@@ -14,10 +14,7 @@ class ChatsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        // backgroundColor: Colors.grey[400],
-        title: const Text('Chats'),
-      ),
+      appBar: AppBar(title: const Text('Chats')),
       body: BlocBuilder<ChatsCubit, ChatsState>(
         builder: (context, state) {
           return switch (state) {

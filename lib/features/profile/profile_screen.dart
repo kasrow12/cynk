@@ -19,12 +19,21 @@ class _ProfileScreenState extends State<ProfileScreen> {
   final _formkey = GlobalKey<FormState>();
   final ImagePicker _picker = ImagePicker();
   bool _isUploading = false;
+  bool _isChangingPhoto = false;
 
   Future<void> _pickImage() async {
     final cubit = context.read<ProfileCubit>();
     final messenger = ScaffoldMessenger.of(context);
 
     try {
+      if (_isChangingPhoto) {
+        return;
+      }
+
+      setState(() {
+        _isChangingPhoto = true;
+      });
+
       final image = await _picker.pickImage(
         source: ImageSource.gallery,
         maxWidth: 1024,
@@ -32,6 +41,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
       );
 
       if (image == null) {
+        setState(() {
+          _isChangingPhoto = false;
+        });
         return;
       }
 
@@ -51,6 +63,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     } finally {
       setState(() {
         _isUploading = false;
+        _isChangingPhoto = false;
       });
     }
   }
@@ -164,7 +177,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ),
                               child: IconButton(
                                 icon: const Icon(Icons.camera_alt),
-                                onPressed: _isUploading ? null : _pickImage,
+                                onPressed: _isChangingPhoto ? null : _pickImage,
                                 iconSize: 32,
                                 tooltip: 'Change photo',
                               ),

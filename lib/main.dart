@@ -52,22 +52,28 @@ class _AppState extends State<_App> {
       routerConfig: _router,
       title: 'Cynk',
       darkTheme: ThemeData.dark(),
-      builder: (context, child) => FutureBuilder(
-        future: _init,
-        builder: (context, snapshot) {
-          if (child == null) {
-            return const Placeholder();
-          }
+      builder: (context, child) => Overlay(
+        initialEntries: [
+          OverlayEntry(
+            builder: (context) => FutureBuilder(
+              future: _init,
+              builder: (context, snapshot) {
+                if (child == null) {
+                  return const Placeholder();
+                }
 
-          return switch (snapshot.connectionState) {
-            ConnectionState.done => CynkApp(child: child),
-            _ => const Scaffold(
-                body: Center(
-                  child: CircularProgressIndicator(),
-                ),
-              ),
-          };
-        },
+                return switch (snapshot.connectionState) {
+                  ConnectionState.done => CynkApp(child: child),
+                  _ => const Scaffold(
+                      body: Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    ),
+                };
+              },
+            ),
+          ),
+        ],
       ),
     );
   }

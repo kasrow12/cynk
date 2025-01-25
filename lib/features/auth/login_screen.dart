@@ -1,0 +1,143 @@
+import 'package:cynk/features/auth/auth_cubit.dart';
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+class LoginScreen extends StatefulWidget {
+  const LoginScreen({super.key});
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
+  final email = TextEditingController();
+  final password = TextEditingController();
+  final formKey = GlobalKey<FormState>();
+
+  void _signIn(AuthCubit authCubit) {
+    if (formKey.currentState?.validate() ?? false) {
+      authCubit.signInWithEmail(
+        email: email.text,
+        password: password.text,
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final authCubit = context.watch<AuthCubit>();
+    final state = authCubit.state;
+
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('Cynk'),
+        leading: const Icon(Icons.chat),
+      ),
+      body: SingleChildScrollView(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: SizedBox(
+              width: 400,
+              child: Form(
+                key: formKey,
+                // autovalidateMode: AutovalidateMode.onUserInteraction,
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Text(
+                      'Sign in',
+                      style:
+                          TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    ),
+                    const SizedBox(height: 32),
+                    TextFormField(
+                      decoration: const InputDecoration(
+                        labelText: 'Email address',
+                      ),
+                      controller: email,
+                      textInputAction: TextInputAction.next,
+                      validator: (value) {
+                        if (value == null ||
+                            value.isEmpty ||
+                            !value.contains('@')) {
+                          return 'Please enter valid email address';
+                        }
+                        return null;
+                      },
+                      onFieldSubmitted: (_) => FocusScope.of(context).nextFocus,
+                    ),
+                    const SizedBox(height: 16),
+                    TextFormField(
+                      decoration: const InputDecoration(
+                        labelText: 'Password',
+                      ),
+                      controller: password,
+                      obscureText: true,
+                      textInputAction: TextInputAction.done,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return 'Please enter your password';
+                        }
+                        return null;
+                      },
+                      onFieldSubmitted: (_) => _signIn(authCubit),
+                    ),
+                    const SizedBox(height: 16),
+                    if (state case SignedOutState(:final error?)) ...[
+                      Text(
+                        error,
+                        style: const TextStyle(color: Colors.red, fontSize: 16),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                    _SignInButton(
+                      enabled: state is SignedOutState,
+                      onSignIn: () => _signIn(authCubit),
+                    ),
+                    const SizedBox(height: 8),
+                    OutlinedButton(
+                      onPressed: authCubit.signInWithGoogle,
+                      child: const Text('Sign in with Google'),
+                    ),
+                    const SizedBox(height: 16),
+                    const Text('or'),
+                    const SizedBox(height: 16),
+                    OutlinedButton(
+                      onPressed: authCubit.moveToSignUp,
+                      child: const Text('Sign up'),
+                    ),
+                    const SizedBox(height: 32),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _SignInButton extends StatelessWidget {
+  const _SignInButton({
+    required this.enabled,
+    required this.onSignIn,
+  });
+
+  final bool enabled;
+  final VoidCallback onSignIn;
+
+  @override
+  Widget build(BuildContext context) {
+    return FilledButton.tonal(
+      onPressed: enabled ? onSignIn : null,
+      child: enabled
+          ? const Text('Sign in')
+          : const SizedBox.square(
+              dimension: 16,
+              child: CircularProgressIndicator(strokeWidth: 2),
+            ),
+    );
+  }
+}
