@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cynk/constants.dart';
 import 'package:cynk/features/auth/auth_service.dart';
 import 'package:cynk/features/data/firestore_data_source.dart';
 import 'package:equatable/equatable.dart';
@@ -11,6 +12,16 @@ class AuthCubit extends Cubit<AuthState> {
       : super(authService.stateFromAuth) {
     _authStateSubscription = authService.isSignedInStream.listen((isSignedIn) {
       emit(authService.stateFromAuth);
+
+      if (isSignedIn) {
+        dataSource.updateLastSeen(authService.currentUser!.uid);
+      }
+    });
+
+    Timer.periodic(const Duration(seconds: LAST_SEEN_TIMER_SECONDS), (_) {
+      if (authService.isSignedIn) {
+        dataSource.updateLastSeen(authService.currentUser!.uid);
+      }
     });
   }
 

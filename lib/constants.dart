@@ -7,3 +7,5 @@ const int MAX_CHAT_NAME_LENGTH = 30;
 
 const int INITIAL_MESSAGES_LOAD_LIMIT = 30;
 const int MESSAGES_LOAD_LIMIT = 20;
+
+const int LAST_SEEN_TIMER_SECONDS = 30;

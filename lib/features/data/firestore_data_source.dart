@@ -379,4 +379,10 @@ class FirestoreDataSource {
 
     await userDoc.set(userDocData);
   }
+
+  Future<void> updateLastSeen(String userId) {
+    return db.collection('users').doc(userId).update({
+      'lastSeen': DateTime.now(),
+    });
+  }
 }
