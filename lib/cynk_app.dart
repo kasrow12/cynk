@@ -23,15 +23,16 @@ class CynkApp extends StatelessWidget {
             firebase: FirebaseAuth.instance,
           ),
         ),
-        BlocProvider(
-          create: (context) => AuthCubit(
-            authService: context.read(),
-          ),
-        ),
         Provider(
           create: (context) => FirestoreDataSource(
             db: FirebaseFirestore.instance,
             storage: FirebaseStorage.instance,
+          ),
+        ),
+        BlocProvider(
+          create: (context) => AuthCubit(
+            authService: context.read(),
+            dataSource: context.read(),
           ),
         ),
       ],

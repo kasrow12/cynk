@@ -330,4 +330,36 @@ class FirestoreDataSource {
       );
     });
   }
+
+  Future<void> createAccount({
+    required String userId,
+    required String email,
+    required String username,
+    XFile? photo,
+  }) async {
+    final userDoc = db.collection('users').doc(userId);
+
+    final userDocData = {
+      'email': email,
+      'username': username,
+      'name': username,
+      'photoUrl': 'https://cdn-icons-png.flaticon.com/512/4202/4202841.png',
+      'lastSeen': FieldValue.serverTimestamp(),
+    };
+
+    if (photo != null) {
+      final storagePath = 'users/$userId/profile.jpg';
+      final fileData = await photo.readAsBytes();
+
+      final storageRef = storage.ref().child(storagePath);
+      final uploadTask = await storageRef.putData(fileData);
+
+      if (uploadTask.state == TaskState.success) {
+        final url = await storageRef.getDownloadURL();
+        userDocData['photoUrl'] = url;
+      }
+    }
+
+    await userDoc.set(userDocData);
+  }
 }

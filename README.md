@@ -3,8 +3,6 @@
 
 
 ## TODO
-- Login ui
-- Register ui
 - Viewing profiles
 - Last seen
 - Message read

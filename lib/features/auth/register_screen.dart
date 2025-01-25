@@ -66,9 +66,10 @@ class _RegisterScreenState extends State<RegisterScreen> {
   void _signUp(AuthCubit authCubit) {
     if (formKey.currentState?.validate() ?? false) {
       authCubit.signUpWithEmail(
-        email: email.text,
+        email: email.text.trim(),
         password: password.text,
-        // photoPath: selectedPhoto?.path,
+        username: username.text.trim(),
+        photo: selectedPhoto,
       );
     }
   }
