@@ -113,7 +113,7 @@ class ContactsScreen extends StatelessWidget {
                 content: TextField(
                   controller: controller,
                   decoration: const InputDecoration(
-                    hintText: 'Enter contact ID',
+                    labelText: 'Enter contact email',
                   ),
                 ),
                 actions: [

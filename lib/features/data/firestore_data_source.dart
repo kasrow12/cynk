@@ -189,19 +189,29 @@ class FirestoreDataSource {
     }
   }
 
-  Future<void> addContact(String userId, String id) async {
-    if (userId == id) {
-      throw Exception('Cannot add self as contact');
-    }
-    if (id.isEmpty) {
+  Future<void> addContact(String userId, String email) async {
+    if (email.isEmpty) {
       throw Exception('Cannot add empty contact');
+    }
+
+    final userDoc =
+        await db.collection('users').where('email', isEqualTo: email).get();
+
+    if (userDoc.docs.isEmpty) {
+      throw Exception('User not found');
+    }
+
+    final contactId = userDoc.docs.first.id;
+
+    if (userId == contactId) {
+      throw Exception('Cannot add self as contact');
     }
 
     await db
         .collection('users')
         .doc(userId)
         .collection('contacts')
-        .doc(id)
+        .doc(contactId)
         .get()
         .then((contactDoc) {
       if (contactDoc.exists) {
@@ -209,12 +219,17 @@ class FirestoreDataSource {
       }
     });
 
-    await db.collection('users').doc(id).get().then((userDoc) {
+    await db.collection('users').doc(contactId).get().then((userDoc) {
       if (!userDoc.exists) {
         throw Exception('User not found');
       }
 
-      db.collection('users').doc(userId).collection('contacts').doc(id).set({});
+      db
+          .collection('users')
+          .doc(userId)
+          .collection('contacts')
+          .doc(contactId)
+          .set({});
     });
   }
 
@@ -322,7 +337,8 @@ class FirestoreDataSource {
           'members': [userId, otherUserId],
           'lastMessage': {
             'id': '-',
-            'date': FieldValue.serverTimestamp(),
+            'date': DateTime
+                .now(), // instead of FieldValue.serverTimestamp(), because race condition
             'sender': userId,
             'text': 'Chat created',
           },
@@ -343,7 +359,8 @@ class FirestoreDataSource {
       'email': email,
       'username': username,
       'name': username,
-      'photoUrl': 'https://cdn-icons-png.flaticon.com/512/4202/4202841.png',
+      'photoUrl':
+          'https://cdn-icons-png.flaticon.com/512/4202/4202841.png', // default photo
       'lastSeen': FieldValue.serverTimestamp(),
     };
 

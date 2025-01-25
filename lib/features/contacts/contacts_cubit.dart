@@ -42,8 +42,8 @@ class ContactsCubit extends Cubit<ContactsState> {
     return super.close();
   }
 
-  Future<void> addContact(String contactId) {
-    return dataSource.addContact(userId, contactId);
+  Future<void> addContact(String contactEmail) {
+    return dataSource.addContact(userId, contactEmail);
   }
 
   Future<void> removeContact(String contactId) {
