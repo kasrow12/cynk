@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cynk/features/data/cynk_user.dart';
 import 'package:cynk/features/data/firestore_data_source.dart';
+import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 class ContactsCubit extends Cubit<ContactsState> {
@@ -20,6 +21,11 @@ class ContactsCubit extends Cubit<ContactsState> {
 
     _contactsSubscription = dataSource.getContactsStream(userId).listen(
       (contacts) {
+        if (contacts.isEmpty) {
+          emit(ContactsEmpty());
+          return;
+        }
+
         final sorted = contacts.toList()
           ..sort(
             (a, b) => a.name.toLowerCase().compareTo(b.name.toLowerCase()),
@@ -68,7 +74,10 @@ class ContactsCubit extends Cubit<ContactsState> {
   }
 }
 
-sealed class ContactsState {}
+sealed class ContactsState extends Equatable {
+  @override
+  List<Object?> get props => [];
+}
 
 class ContactsLoading extends ContactsState {}
 
@@ -82,10 +91,18 @@ class ContactsLoaded extends ContactsState {
   final String userId;
   final List<CynkUser> allContacts;
   final List<CynkUser> filteredContacts;
+
+  @override
+  List<Object?> get props => [userId, allContacts, filteredContacts];
 }
 
 class ContactsError extends ContactsState {
   ContactsError(this.error);
 
   final String error;
+
+  @override
+  List<Object?> get props => [error];
 }
+
+class ContactsEmpty extends ContactsState {}

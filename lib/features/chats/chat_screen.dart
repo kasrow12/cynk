@@ -1,17 +1,14 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cynk/features/chats/classes/chat.dart';
 import 'package:cynk/features/chats/cubits/chats_cubit.dart';
 import 'package:cynk/features/chats/cubits/messages_cubit.dart';
-import 'package:cynk/features/data/cynk_user.dart';
+import 'package:cynk/features/chats/widgets/date_separator.dart';
+import 'package:cynk/features/chats/widgets/message_tile.dart';
 import 'package:cynk/features/widgets.dart';
-import 'package:cynk/screens/chat/date_separator.dart';
-import 'package:cynk/screens/chat/message_tile.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:timeago/timeago.dart' as timeago;
 
 class ChatScreen extends StatelessWidget {
   const ChatScreen({
@@ -237,95 +234,6 @@ class _ChatScreenContentState extends State<ChatScreenContent> {
           ),
         ],
       ),
-    );
-  }
-}
-
-class CynkTile extends StatelessWidget {
-  const CynkTile({
-    super.key,
-    required this.photoUrl,
-    required this.name,
-    required this.subtitle,
-  });
-
-  final String photoUrl;
-  final String name;
-  final String subtitle;
-
-  @override
-  Widget build(BuildContext context) {
-    return Row(
-      children: [
-        CircleAvatar(
-          radius: 20,
-          backgroundImage: CachedNetworkImageProvider(photoUrl),
-        ),
-        const SizedBox(width: 12),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              TrimmedText(
-                text: name,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  height: 1,
-                ),
-              ),
-              const SizedBox(height: 3),
-              TrimmedText(
-                text: subtitle,
-                style: const TextStyle(
-                  fontSize: 12,
-                  height: 1,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ],
-    );
-  }
-}
-
-class UserItem extends StatelessWidget {
-  const UserItem({
-    super.key,
-    required this.user,
-  });
-
-  final CynkUser user;
-
-  @override
-  Widget build(BuildContext context) {
-    return CynkTile(
-      photoUrl: user.photoUrl,
-      name: user.name,
-      subtitle: 'widziano ${timeago.format(user.lastSeen, locale: 'pl')}',
-    );
-  }
-}
-
-class GroupItem extends StatelessWidget {
-  const GroupItem({
-    super.key,
-    required this.name,
-    required this.photoUrl,
-    required this.count,
-  });
-
-  final String name;
-  final String photoUrl;
-  final int count;
-
-  @override
-  Widget build(BuildContext context) {
-    return CynkTile(
-      photoUrl: photoUrl,
-      name: name,
-      subtitle: '$count members',
     );
   }
 }

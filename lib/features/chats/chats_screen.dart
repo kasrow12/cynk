@@ -62,7 +62,7 @@ class ChatsScreen extends StatelessWidget {
               leading: const Icon(Icons.person),
               onTap: () {
                 Navigator.pop(context);
-                ProfileRoute().go(context);
+                OwnProfileRoute().go(context);
               },
             ),
             ListTile(

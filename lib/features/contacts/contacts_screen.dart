@@ -19,6 +19,9 @@ class ContactsScreen extends StatelessWidget {
           return switch (state) {
             ContactsLoading() =>
               const Center(child: CircularProgressIndicator()),
+            ContactsEmpty() =>
+              const Center(child: Text('No contacts, add some')),
+            ContactsError(:final error) => Center(child: Text(error)),
             ContactsLoaded(:final userId, :final filteredContacts) =>
               CustomScrollView(
                 slivers: [
@@ -98,7 +101,6 @@ class ContactsScreen extends StatelessWidget {
                   ),
                 ],
               ),
-            ContactsError(:final error) => Center(child: Text(error)),
           };
         },
       ),

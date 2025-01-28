@@ -21,8 +21,11 @@ part 'routes.g.dart';
     TypedGoRoute<ContactsRoute>(
       path: '/contacts',
     ),
-    TypedGoRoute<ProfileRoute>(
+    TypedGoRoute<OwnProfileRoute>(
       path: '/profile',
+    ),
+    TypedGoRoute<ProfileRoute>(
+      path: '/profile/:userId',
     ),
   ],
 )
@@ -64,13 +67,32 @@ class ContactsRoute extends GoRouteData {
   }
 }
 
-class ProfileRoute extends GoRouteData {
+class OwnProfileRoute extends GoRouteData {
   @override
   Widget build(BuildContext context, GoRouterState state) {
     return BlocProvider(
       create: (context) => ProfileCubit(
         dataSource: context.read(),
         userId: (context.read<AuthCubit>().state as SignedInState).userId,
+        isOwner: true,
+      )..loadProfile(),
+      child: const ProfileScreen(),
+    );
+  }
+}
+
+class ProfileRoute extends GoRouteData {
+  ProfileRoute({required this.userId});
+
+  final String userId;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) {
+    return BlocProvider(
+      create: (context) => ProfileCubit(
+        dataSource: context.read(),
+        userId: userId,
+        isOwner: state.pathParameters.isEmpty,
       )..loadProfile(),
       child: const ProfileScreen(),
     );

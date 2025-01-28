@@ -24,6 +24,10 @@ RouteBase get $homeRoute => GoRouteData.$route(
         ),
         GoRouteData.$route(
           path: '/profile',
+          factory: $OwnProfileRouteExtension._fromState,
+        ),
+        GoRouteData.$route(
+          path: '/profile/:userId',
           factory: $ProfileRouteExtension._fromState,
         ),
       ],
@@ -82,11 +86,30 @@ extension $ContactsRouteExtension on ContactsRoute {
   void replace(BuildContext context) => context.replace(location);
 }
 
-extension $ProfileRouteExtension on ProfileRoute {
-  static ProfileRoute _fromState(GoRouterState state) => ProfileRoute();
+extension $OwnProfileRouteExtension on OwnProfileRoute {
+  static OwnProfileRoute _fromState(GoRouterState state) => OwnProfileRoute();
 
   String get location => GoRouteData.$location(
         '/profile',
+      );
+
+  void go(BuildContext context) => context.go(location);
+
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  void replace(BuildContext context) => context.replace(location);
+}
+
+extension $ProfileRouteExtension on ProfileRoute {
+  static ProfileRoute _fromState(GoRouterState state) => ProfileRoute(
+        userId: state.pathParameters['userId']!,
+      );
+
+  String get location => GoRouteData.$location(
+        '/profile/${Uri.encodeComponent(userId)}',
       );
 
   void go(BuildContext context) => context.go(location);

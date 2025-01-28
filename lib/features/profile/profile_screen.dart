@@ -1,8 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:cynk/constants.dart';
-import 'package:cynk/features/data/cynk_user.dart';
 import 'package:cynk/features/profile/profile_cubit.dart';
 import 'package:cynk/features/widgets.dart';
+import 'package:cynk/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
@@ -15,8 +14,6 @@ class ProfileScreen extends StatefulWidget {
 }
 
 class _ProfileScreenState extends State<ProfileScreen> {
-  final _nameController = TextEditingController();
-  final _formkey = GlobalKey<FormState>();
   final ImagePicker _picker = ImagePicker();
   bool _isUploading = false;
   bool _isChangingPhoto = false;
@@ -68,65 +65,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
     }
   }
 
-  void _showEditNameDialog(CynkUser user, void Function(String) onSave) {
-    _nameController.text = user.name;
-    showDialog<void>(
-      context: context,
-      builder: (context) => StatefulBuilder(
-        builder: (context, setState) {
-          return AlertDialog(
-            title: const Text('Edit Username'),
-            content: Form(
-              autovalidateMode: AutovalidateMode.always,
-              key: _formkey,
-              child: TextFormField(
-                validator: (value) {
-                  if (value == null ||
-                      value.isEmpty ||
-                      value.trim().length < 3) {
-                    return 'Username must be at least 3 characters long';
-                  }
-                  if (value.trim().length > MAX_NAME_LENGTH) {
-                    return 'Username must be at most $MAX_NAME_LENGTH characters long';
-                  }
-                  return null;
-                },
-                controller: _nameController,
-                decoration: const InputDecoration(
-                  labelText: 'Username',
-                  border: OutlineInputBorder(),
-                  errorMaxLines: 2,
-                ),
-              ),
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.pop(context),
-                child: const Text('Cancel'),
-              ),
-              TextButton(
-                onPressed: () {
-                  try {
-                    onSave(_nameController.text.trim());
-                    Navigator.pop(context);
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Name updated')),
-                    );
-                  } catch (err) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(err.toString())),
-                    );
-                  }
-                },
-                child: const Text('Save'),
-              ),
-            ],
-          );
-        },
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -141,7 +79,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
           ProfileError(:final error) => Center(
               child: Text('Error: $error'),
             ),
-          ProfileLoaded(:final user) => SingleChildScrollView(
+          ProfileLoaded(:final user, :final isOwner) => SingleChildScrollView(
               child: Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 32),
                 child: SizedBox(
@@ -165,24 +103,26 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                 child: CircularProgressIndicator(),
                               ),
                             ),
-                          Positioned(
-                            bottom: 8,
-                            right: 8,
-                            child: DecoratedBox(
-                              decoration: BoxDecoration(
-                                color: Theme.of(context)
-                                    .colorScheme
-                                    .secondaryContainer,
-                                shape: BoxShape.circle,
-                              ),
-                              child: IconButton(
-                                icon: const Icon(Icons.camera_alt),
-                                onPressed: _isChangingPhoto ? null : _pickImage,
-                                iconSize: 32,
-                                tooltip: 'Change photo',
+                          if (isOwner)
+                            Positioned(
+                              bottom: 8,
+                              right: 8,
+                              child: DecoratedBox(
+                                decoration: BoxDecoration(
+                                  color: Theme.of(context)
+                                      .colorScheme
+                                      .secondaryContainer,
+                                  shape: BoxShape.circle,
+                                ),
+                                child: IconButton(
+                                  icon: const Icon(Icons.camera_alt),
+                                  onPressed:
+                                      _isChangingPhoto ? null : _pickImage,
+                                  iconSize: 32,
+                                  tooltip: 'Change photo',
+                                ),
                               ),
                             ),
-                          ),
                         ],
                       ),
                       const SizedBox(height: 20),
@@ -198,15 +138,19 @@ class _ProfileScreenState extends State<ProfileScreen> {
                               ),
                             ),
                           ),
-                          IconButton(
-                            icon: const Icon(Icons.edit),
-                            onPressed: () => _showEditNameDialog(
-                              user,
-                              (name) =>
-                                  context.read<ProfileCubit>().updateName(name),
+                          if (isOwner)
+                            IconButton(
+                              icon: const Icon(Icons.edit),
+                              onPressed: () => showDialog<void>(
+                                context: context,
+                                builder: (_) => _Dialog(
+                                  name: user.name,
+                                  onSave:
+                                      context.read<ProfileCubit>().updateName,
+                                ),
+                              ),
+                              tooltip: 'Edit username',
                             ),
-                            tooltip: 'Edit username',
-                          ),
                         ],
                       ),
                       const SizedBox(height: 8),
@@ -225,6 +169,84 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
         },
       ),
+    );
+  }
+}
+
+class _Dialog extends StatefulWidget {
+  const _Dialog({required this.onSave, required this.name});
+
+  final String name;
+  final Future<void> Function(String) onSave;
+
+  @override
+  State<_Dialog> createState() => _DialogState();
+}
+
+class _DialogState extends State<_Dialog> {
+  final _formkey = GlobalKey<FormState>();
+  final _nameController = TextEditingController();
+
+  @override
+  Widget build(BuildContext context) {
+    _nameController.text = widget.name;
+    return StatefulBuilder(
+      builder: (context, setState) {
+        return AlertDialog(
+          title: const Text('Edit Username'),
+          content: Form(
+            autovalidateMode: AutovalidateMode.always,
+            key: _formkey,
+            child: TextFormField(
+              validator: (value) {
+                if (value == null || value.isEmpty || value.trim().length < 3) {
+                  return 'Username must be at least 3 characters long';
+                }
+                if (value.trim().length > MAX_NAME_LENGTH) {
+                  return 'Username must be at most $MAX_NAME_LENGTH characters long';
+                }
+                return null;
+              },
+              controller: _nameController,
+              decoration: const InputDecoration(
+                labelText: 'Username',
+                border: OutlineInputBorder(),
+                errorMaxLines: 2,
+              ),
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () async {
+                try {
+                  await widget.onSave(_nameController.text.trim());
+                  if (!context.mounted) {
+                    return;
+                  }
+
+                  Navigator.pop(context);
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Name updated')),
+                  );
+                } catch (err) {
+                  if (!context.mounted) {
+                    return;
+                  }
+
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text(err.toString())),
+                  );
+                }
+              },
+              child: const Text('Save'),
+            ),
+          ],
+        );
+      },
     );
   }
 

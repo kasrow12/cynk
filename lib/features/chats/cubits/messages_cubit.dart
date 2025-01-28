@@ -1,8 +1,8 @@
 import 'dart:async';
 
-import 'package:cynk/constants.dart';
 import 'package:cynk/features/chats/classes/message.dart';
 import 'package:cynk/features/data/firestore_data_source.dart';
+import 'package:cynk/utils/constants.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:image_picker/image_picker.dart';
