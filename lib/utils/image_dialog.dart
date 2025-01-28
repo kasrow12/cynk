@@ -10,19 +10,31 @@ import 'package:universal_html/html.dart' as html;
 
 Future<void> downloadImage(String imageUrl, BuildContext context) async {
   try {
-    final fileName = 'image_${DateTime.now().millisecondsSinceEpoch}.jpg';
+    final uri = Uri.parse(imageUrl);
+    final originalFileName = uri.pathSegments.last;
+    var fileName = originalFileName.split('/').last;
+    if (!fileName.contains('.')) {
+      fileName += '.jpg';
+    }
 
     if (kIsWeb) {
-      final anchor = html.AnchorElement(href: imageUrl)
-        ..setAttribute(
-          'download',
-          fileName,
-        )
+      final response = await Dio().get(
+        imageUrl,
+        options: Options(responseType: ResponseType.bytes),
+      );
+
+      final blob = html.Blob([response.data]);
+      final url = html.Url.createObjectUrlFromBlob(blob);
+
+      final anchor = html.AnchorElement(href: url)
+        ..setAttribute('download', fileName)
         ..style.display = 'none';
 
       html.document.body?.children.add(anchor);
       anchor.click();
       html.document.body?.children.remove(anchor);
+
+      html.Url.revokeObjectUrl(url);
     } else {
       // For Android 13 and above
       if (Platform.isAndroid) {
