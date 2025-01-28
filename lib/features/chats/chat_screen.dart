@@ -4,6 +4,7 @@ import 'package:cynk/features/chats/cubits/messages_cubit.dart';
 import 'package:cynk/features/chats/widgets/date_separator.dart';
 import 'package:cynk/features/chats/widgets/message_tile.dart';
 import 'package:cynk/features/widgets.dart';
+import 'package:cynk/routes/routes.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -37,6 +38,7 @@ class ChatScreen extends StatelessWidget {
               chat: chats.firstWhere((chat) => chat.id == chatId),
             ),
           ChatsError(:final error) => Center(child: Text(error)),
+          ChatsEmpty() => const Center(child: Text('Error: Chat not found')),
         };
       },
     );
@@ -157,27 +159,17 @@ class _ChatScreenContentState extends State<ChatScreenContent> {
     return Scaffold(
       appBar: AppBar(
         title: switch (widget.chat) {
-          PrivateChat(:final otherUser) => UserItem(user: otherUser),
+          PrivateChat(:final otherUser) => UserItem(
+              user: otherUser,
+              onTap: () => ProfileRoute(userId: otherUser.id)
+                  .push<ProfileRoute>(context),
+            ),
           GroupChat(:final name, :final photoUrl, :final members) => GroupItem(
               name: name,
               photoUrl: photoUrl,
               count: members.length,
             ),
         },
-        // actions: [
-        //   PopupMenuButton(
-        //     itemBuilder: (context) {
-        //       return [
-        //         const PopupMenuItem<void>(
-        //           child: Text('Item1'),
-        //         ),
-        //         const PopupMenuItem<void>(
-        //           child: Text('Item 2'),
-        //         ),
-        //       ];
-        //     },
-        //   ),
-        // ],
       ),
       body: Column(
         children: [

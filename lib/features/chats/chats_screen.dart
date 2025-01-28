@@ -19,23 +19,23 @@ class ChatsScreen extends StatelessWidget {
         builder: (context, state) {
           return switch (state) {
             ChatsLoading() => const Center(child: CircularProgressIndicator()),
-            ChatsLoaded(:final chats) => chats.isNotEmpty
-                ? ListView.builder(
-                    itemCount: chats.length,
-                    itemBuilder: (context, index) {
-                      final chat = chats[index];
-                      return ChatEntry(
-                        chat: chat,
-                        onTap: () => ChatRoute(chatId: chat.id).go(context),
-                      );
-                    },
-                  )
-                : const Center(
-                    child: Text(
-                      'No chats yet, start a new one by tapping on Contacts',
-                    ),
-                  ),
+            ChatsEmpty() => const Center(
+                child: Text(
+                  'No chats yet, start a new one by tapping on Contacts',
+                ),
+              ),
             ChatsError(:final error) => Center(child: Text(error)),
+            ChatsLoaded(:final chats) => ListView.builder(
+                itemCount: chats.length,
+                itemBuilder: (context, index) {
+                  final chat = chats[index];
+                  return ChatEntry(
+                    chat: chat,
+                    onTap: () =>
+                        ChatRoute(chatId: chat.id).push<ChatRoute>(context),
+                  );
+                },
+              ),
           };
         },
       ),
@@ -62,7 +62,7 @@ class ChatsScreen extends StatelessWidget {
               leading: const Icon(Icons.person),
               onTap: () {
                 Navigator.pop(context);
-                OwnProfileRoute().go(context);
+                OwnProfileRoute().push<OwnProfileRoute>(context);
               },
             ),
             ListTile(
@@ -70,7 +70,7 @@ class ChatsScreen extends StatelessWidget {
               leading: const Icon(Icons.people),
               onTap: () {
                 Navigator.pop(context);
-                ContactsRoute().go(context);
+                ContactsRoute().push<ContactsRoute>(context);
               },
             ),
             ListTile(

@@ -1,5 +1,6 @@
 import 'package:cynk/features/contacts/contact_tile.dart';
 import 'package:cynk/features/contacts/contacts_cubit.dart';
+import 'package:cynk/features/data/cynk_user.dart';
 import 'package:cynk/routes/routes.dart';
 import 'package:cynk/utils/private_chat_id.dart';
 import 'package:flutter/material.dart';
@@ -11,9 +12,7 @@ class ContactsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Contacts'),
-      ),
+      appBar: AppBar(title: const Text('Contacts')),
       body: BlocBuilder<ContactsCubit, ContactsState>(
         builder: (context, state) {
           return switch (state) {
@@ -23,83 +22,9 @@ class ContactsScreen extends StatelessWidget {
               const Center(child: Text('No contacts, add some')),
             ContactsError(:final error) => Center(child: Text(error)),
             ContactsLoaded(:final userId, :final filteredContacts) =>
-              CustomScrollView(
-                slivers: [
-                  SliverPadding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8),
-                    sliver: SliverPersistentHeader(
-                      pinned: true,
-                      delegate: _SearchBarDelegate(
-                        onChanged: (value) =>
-                            context.read<ContactsCubit>().searchContacts(value),
-                      ),
-                    ),
-                  ),
-                  SliverList.builder(
-                    itemBuilder: (context, index) {
-                      final contact = filteredContacts[index];
-                      return ContactTile(
-                        user: contact,
-                        onTap: () => ChatRoute(
-                          chatId: getPrivateChatId(userId, contact.id),
-                        ).go(context),
-                        onRemove: () async {
-                          await showDialog<void>(
-                            context: context,
-                            builder: (dialogContext) {
-                              return AlertDialog(
-                                title: const Text('Remove Contact'),
-                                content: const Text(
-                                  'Are you sure you want to remove this contact?',
-                                ),
-                                actions: [
-                                  TextButton(
-                                    onPressed: () async {
-                                      Navigator.of(dialogContext).pop();
-                                      try {
-                                        await context
-                                            .read<ContactsCubit>()
-                                            .removeContact(contact.id);
-                                        if (context.mounted) {
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(
-                                            const SnackBar(
-                                              content: Text('Contact removed'),
-                                            ),
-                                          );
-                                        }
-                                      } catch (err) {
-                                        if (context.mounted) {
-                                          ScaffoldMessenger.of(context)
-                                              .showSnackBar(
-                                            SnackBar(
-                                              content: Text(err.toString()),
-                                            ),
-                                          );
-                                        }
-                                      }
-                                    },
-                                    child: const Text(
-                                      'Yes',
-                                      style: TextStyle(color: Colors.red),
-                                    ),
-                                  ),
-                                  TextButton(
-                                    onPressed: () {
-                                      Navigator.of(dialogContext).pop();
-                                    },
-                                    child: const Text('No'),
-                                  ),
-                                ],
-                              );
-                            },
-                          );
-                        },
-                      );
-                    },
-                    itemCount: filteredContacts.length,
-                  ),
-                ],
+              _ContactsScreen(
+                userId: userId,
+                filteredContacts: filteredContacts,
               ),
           };
         },
@@ -150,6 +75,96 @@ class ContactsScreen extends StatelessWidget {
           child: const Icon(Icons.add),
         ),
       ),
+    );
+  }
+}
+
+class _ContactsScreen extends StatelessWidget {
+  const _ContactsScreen({
+    required this.userId,
+    required this.filteredContacts,
+  });
+
+  final String userId;
+  final List<CynkUser> filteredContacts;
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomScrollView(
+      slivers: [
+        SliverPadding(
+          padding: const EdgeInsets.symmetric(horizontal: 8),
+          sliver: SliverPersistentHeader(
+            pinned: true,
+            delegate: _SearchBarDelegate(
+              onChanged: (value) =>
+                  context.read<ContactsCubit>().searchContacts(value),
+            ),
+          ),
+        ),
+        SliverList.builder(
+          itemCount: filteredContacts.length,
+          itemBuilder: (context, index) {
+            final contact = filteredContacts[index];
+            return ContactTile(
+              user: contact,
+              onTap: () => ChatRoute(
+                chatId: getPrivateChatId(userId, contact.id),
+              ).push<ChatRoute>(context),
+              onRemove: () async {
+                await showDialog<void>(
+                  context: context,
+                  builder: (dialogContext) {
+                    return AlertDialog(
+                      title: const Text('Remove Contact'),
+                      content: const Text(
+                        'Are you sure you want to remove this contact?',
+                      ),
+                      actions: [
+                        TextButton(
+                          onPressed: () async {
+                            Navigator.of(dialogContext).pop();
+                            try {
+                              await context
+                                  .read<ContactsCubit>()
+                                  .removeContact(contact.id);
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Contact removed'),
+                                  ),
+                                );
+                              }
+                            } catch (err) {
+                              if (context.mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(
+                                    content: Text(err.toString()),
+                                  ),
+                                );
+                              }
+                            }
+                          },
+                          child: const Text(
+                            'Yes',
+                            style: TextStyle(color: Colors.red),
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () {
+                            Navigator.of(dialogContext).pop();
+                          },
+                          child: const Text('No'),
+                        ),
+                      ],
+                    );
+                  },
+                );
+              },
+            );
+          },
+        ),
+      ],
     );
   }
 }

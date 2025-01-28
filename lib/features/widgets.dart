@@ -1,6 +1,5 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cynk/features/data/cynk_user.dart';
-import 'package:cynk/routes/routes.dart';
 import 'package:flutter/material.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
@@ -30,13 +29,13 @@ class CynkTile extends StatelessWidget {
     required this.photoUrl,
     required this.name,
     required this.subtitle,
-    required this.onTap,
+    this.onTap,
   });
 
   final String photoUrl;
   final String name;
   final String subtitle;
-  final VoidCallback onTap;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -50,26 +49,28 @@ class CynkTile extends StatelessWidget {
             backgroundImage: CachedNetworkImageProvider(photoUrl),
           ),
           const SizedBox(width: 12),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              TrimmedText(
-                text: name,
-                style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  height: 1,
+          Flexible(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TrimmedText(
+                  text: name,
+                  style: const TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    height: 1,
+                  ),
                 ),
-              ),
-              const SizedBox(height: 3),
-              TrimmedText(
-                text: subtitle,
-                style: const TextStyle(
-                  fontSize: 12,
-                  height: 1,
+                const SizedBox(height: 3),
+                TrimmedText(
+                  text: subtitle,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    height: 1,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
@@ -81,9 +82,11 @@ class UserItem extends StatelessWidget {
   const UserItem({
     super.key,
     required this.user,
+    this.onTap,
   });
 
   final CynkUser user;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -91,7 +94,7 @@ class UserItem extends StatelessWidget {
       photoUrl: user.photoUrl,
       name: user.name,
       subtitle: 'widziano ${timeago.format(user.lastSeen, locale: 'pl')}',
-      onTap: () => ProfileRoute(userId: user.id).go(context),
+      onTap: onTap,
     );
   }
 }
@@ -102,11 +105,13 @@ class GroupItem extends StatelessWidget {
     required this.name,
     required this.photoUrl,
     required this.count,
+    this.onTap,
   });
 
   final String name;
   final String photoUrl;
   final int count;
+  final VoidCallback? onTap;
 
   @override
   Widget build(BuildContext context) {
@@ -114,7 +119,7 @@ class GroupItem extends StatelessWidget {
       photoUrl: photoUrl,
       name: name,
       subtitle: '$count members',
-      onTap: () {}, // group members not implemented
+      onTap: onTap, // group members not implemented
     );
   }
 }

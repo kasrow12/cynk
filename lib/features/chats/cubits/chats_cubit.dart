@@ -34,12 +34,14 @@ class ChatsCubit extends Cubit<ChatsState> {
   }
 }
 
-sealed class ChatsState extends Equatable {}
-
-class ChatsLoading extends ChatsState {
+sealed class ChatsState extends Equatable {
   @override
   List<Object?> get props => [];
 }
+
+class ChatsLoading extends ChatsState {}
+
+class ChatsEmpty extends ChatsState {}
 
 class ChatsLoaded extends ChatsState {
   ChatsLoaded(this.userId, this.chats);
