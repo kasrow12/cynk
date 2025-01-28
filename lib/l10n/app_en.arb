@@ -91,7 +91,7 @@
     "contactRemoved": "Contact removed successfully",
     "yes": "Yes",
     "no": "No",
-    "lastSeen": "Last seen {time}",
+    "lastSeen": "last seen {time}",
     "@lastSeen": {
         "placeholders": {
             "time": {
