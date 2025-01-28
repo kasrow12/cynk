@@ -1,7 +1,9 @@
 import 'dart:typed_data';
 
 import 'package:cynk/features/auth/auth_cubit.dart';
+import 'package:cynk/main.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:provider/provider.dart';
 
@@ -26,6 +28,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
 
   Future<void> pickPhoto() async {
     final messenger = ScaffoldMessenger.of(context);
+    final localizations = AppLocalizations.of(context)!;
 
     setState(() {
       isUploading = true;
@@ -53,7 +56,9 @@ class _RegisterScreenState extends State<RegisterScreen> {
     } catch (err) {
       if (context.mounted) {
         messenger.showSnackBar(
-          SnackBar(content: Text('Failed to upload photo: $err')),
+          SnackBar(
+            content: Text(localizations.photoUpdateFail(err.toString())),
+          ),
         );
       }
     } finally {
@@ -86,6 +91,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
           icon: const Icon(Icons.arrow_back),
           onPressed: () => context.read<AuthCubit>().signOut(),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.language),
+            onPressed: () => App.changeLocale(context),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Center(
@@ -98,13 +109,15 @@ class _RegisterScreenState extends State<RegisterScreen> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text(
-                      'Sign up',
-                      style:
-                          TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    Text(
+                      AppLocalizations.of(context)!.signUp,
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 32),
-                    const Text('Profile photo'),
+                    Text(AppLocalizations.of(context)!.profilePhoto),
                     const SizedBox(height: 8),
                     Stack(
                       children: [
@@ -137,8 +150,8 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     const SizedBox(height: 32),
                     TextFormField(
-                      decoration: const InputDecoration(
-                        labelText: 'Email address',
+                      decoration: InputDecoration(
+                        labelText: AppLocalizations.of(context)!.email,
                       ),
                       controller: email,
                       textInputAction: TextInputAction.next,
@@ -146,7 +159,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                         if (value == null ||
                             value.isEmpty ||
                             !value.contains('@')) {
-                          return 'Please enter valid email address';
+                          return AppLocalizations.of(context)!.invalidEmail;
                         }
                         return null;
                       },
@@ -157,7 +170,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                       builder: (context, setState) {
                         return TextFormField(
                           decoration: InputDecoration(
-                            labelText: 'Password',
+                            labelText: AppLocalizations.of(context)!.password,
                             suffixIcon: ExcludeFocus(
                               child: IconButton(
                                 icon: Icon(
@@ -178,10 +191,12 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           textInputAction: TextInputAction.next,
                           validator: (value) {
                             if (value == null || value.isEmpty) {
-                              return 'Please enter your password';
+                              return AppLocalizations.of(context)!
+                                  .passwordEmpty;
                             }
                             if (value.length < 6) {
-                              return 'Password must be at least 6 characters long';
+                              return AppLocalizations.of(context)!
+                                  .passwordTooShort(6);
                             }
                             return null;
                           },
@@ -192,14 +207,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
-                      decoration: const InputDecoration(
-                        labelText: 'Username',
+                      decoration: InputDecoration(
+                        labelText: AppLocalizations.of(context)!.username,
                       ),
                       controller: username,
                       textInputAction: TextInputAction.done,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter a username';
+                          return AppLocalizations.of(context)!.invalidUsername;
                         }
                         return null;
                       },
@@ -218,18 +233,18 @@ class _RegisterScreenState extends State<RegisterScreen> {
                           ? () => _signUp(authCubit)
                           : null,
                       child: state is SigningUpScreenState
-                          ? const Text('Sign up')
+                          ? Text(AppLocalizations.of(context)!.signUp)
                           : const SizedBox.square(
                               dimension: 16,
                               child: CircularProgressIndicator(strokeWidth: 2),
                             ),
                     ),
                     const SizedBox(height: 16),
-                    const Text('or'),
+                    Text(AppLocalizations.of(context)!.or),
                     const SizedBox(height: 16),
                     OutlinedButton(
                       onPressed: authCubit.signOut,
-                      child: const Text('Back to login'),
+                      child: Text(AppLocalizations.of(context)!.backToSignIn),
                     ),
                     const SizedBox(height: 32),
                   ],

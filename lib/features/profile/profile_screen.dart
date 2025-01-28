@@ -4,7 +4,9 @@ import 'package:cynk/features/widgets.dart';
 import 'package:cynk/utils/constants.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:image_picker/image_picker.dart';
+import 'package:timeago/timeago.dart' as timeago;
 
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({super.key});
@@ -21,6 +23,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Future<void> _pickImage() async {
     final cubit = context.read<ProfileCubit>();
     final messenger = ScaffoldMessenger.of(context);
+    final localizations = AppLocalizations.of(context)!;
 
     try {
       if (_isChangingPhoto) {
@@ -51,11 +54,15 @@ class _ProfileScreenState extends State<ProfileScreen> {
       await cubit.updatePhoto(image);
 
       messenger.showSnackBar(
-        const SnackBar(content: Text('Photo uploaded successfully')),
+        SnackBar(content: Text(localizations.photoUpdated)),
       );
     } catch (err) {
       messenger.showSnackBar(
-        SnackBar(content: Text('Failed to upload photo: $err')),
+        SnackBar(
+          content: Text(
+            localizations.photoUpdateFail(err.toString()),
+          ),
+        ),
       );
     } finally {
       setState(() {
@@ -69,7 +76,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Profile'),
+        title: Text(AppLocalizations.of(context)!.profile),
       ),
       body: BlocBuilder<ProfileCubit, ProfileState>(
         builder: (context, state) => switch (state) {
@@ -77,7 +84,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
               child: CircularProgressIndicator(),
             ),
           ProfileError(:final error) => Center(
-              child: Text('Error: $error'),
+              child: Text(AppLocalizations.of(context)!.error(error)),
             ),
           ProfileLoaded(:final user, :final isOwner) => SingleChildScrollView(
               child: Padding(
@@ -119,7 +126,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                   onPressed:
                                       _isChangingPhoto ? null : _pickImage,
                                   iconSize: 32,
-                                  tooltip: 'Change photo',
+                                  tooltip:
+                                      AppLocalizations.of(context)!.changePhoto,
                                 ),
                               ),
                             ),
@@ -149,7 +157,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                                       context.read<ProfileCubit>().updateName,
                                 ),
                               ),
-                              tooltip: 'Edit username',
+                              tooltip: AppLocalizations.of(context)!.editName,
                             ),
                         ],
                       ),
@@ -162,6 +170,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                         ),
                       ),
                       const SizedBox(height: 32),
+                      if (!isOwner) ...[
+                        Text(
+                          AppLocalizations.of(context)!.lastSeen(
+                            timeago.format(user.lastSeen),
+                          ),
+                        ),
+                        const SizedBox(height: 32),
+                      ]
                     ],
                   ),
                 ),
@@ -193,24 +209,25 @@ class _DialogState extends State<_Dialog> {
     return StatefulBuilder(
       builder: (context, setState) {
         return AlertDialog(
-          title: const Text('Edit Username'),
+          title: Text(AppLocalizations.of(context)!.editName),
           content: Form(
             autovalidateMode: AutovalidateMode.always,
             key: _formkey,
             child: TextFormField(
               validator: (value) {
                 if (value == null || value.isEmpty || value.trim().length < 3) {
-                  return 'Username must be at least 3 characters long';
+                  return AppLocalizations.of(context)!.nameTooShort;
                 }
                 if (value.trim().length > MAX_NAME_LENGTH) {
-                  return 'Username must be at most $MAX_NAME_LENGTH characters long';
+                  return AppLocalizations.of(context)!
+                      .nameTooLong(MAX_NAME_LENGTH);
                 }
                 return null;
               },
               controller: _nameController,
-              decoration: const InputDecoration(
-                labelText: 'Username',
-                border: OutlineInputBorder(),
+              decoration: InputDecoration(
+                labelText: AppLocalizations.of(context)!.username,
+                border: const OutlineInputBorder(),
                 errorMaxLines: 2,
               ),
             ),
@@ -218,7 +235,7 @@ class _DialogState extends State<_Dialog> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancel'),
+              child: Text(AppLocalizations.of(context)!.cancel),
             ),
             TextButton(
               onPressed: () async {
@@ -230,7 +247,9 @@ class _DialogState extends State<_Dialog> {
 
                   Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Name updated')),
+                    SnackBar(
+                      content: Text(AppLocalizations.of(context)!.nameUpdated),
+                    ),
                   );
                 } catch (err) {
                   if (!context.mounted) {
@@ -242,7 +261,7 @@ class _DialogState extends State<_Dialog> {
                   );
                 }
               },
-              child: const Text('Save'),
+              child: Text(AppLocalizations.of(context)!.save),
             ),
           ],
         );

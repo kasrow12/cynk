@@ -1,6 +1,7 @@
 import 'package:cynk/features/data/cynk_user.dart';
 import 'package:cynk/features/widgets.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ContactTile extends StatelessWidget {
   const ContactTile({
@@ -27,7 +28,7 @@ class ContactTile extends StatelessWidget {
             // ),
             PopupMenuItem<void>(
               onTap: onRemove,
-              child: const Text('Remove Contact'),
+              child: Text(AppLocalizations.of(context)!.removeContact),
             ),
           ],
         ),

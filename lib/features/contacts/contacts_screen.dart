@@ -5,6 +5,7 @@ import 'package:cynk/routes/routes.dart';
 import 'package:cynk/utils/private_chat_id.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ContactsScreen extends StatelessWidget {
   const ContactsScreen({super.key});
@@ -12,14 +13,14 @@ class ContactsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Contacts')),
+      appBar: AppBar(title: Text(AppLocalizations.of(context)!.contacts)),
       body: BlocBuilder<ContactsCubit, ContactsState>(
         builder: (context, state) {
           return switch (state) {
             ContactsLoading() =>
               const Center(child: CircularProgressIndicator()),
             ContactsEmpty() =>
-              const Center(child: Text('No contacts, add some')),
+              Center(child: Text(AppLocalizations.of(context)!.noContacts)),
             ContactsError(:final error) => Center(child: Text(error)),
             ContactsLoaded(:final userId, :final filteredContacts) =>
               _ContactsScreen(
@@ -31,16 +32,19 @@ class ContactsScreen extends StatelessWidget {
       ),
       floatingActionButton: BlocBuilder<ContactsCubit, ContactsState>(
         builder: (context, _) => FloatingActionButton(
+          shape: const CircleBorder(),
+          tooltip: AppLocalizations.of(context)!.addContact,
+          child: const Icon(Icons.add),
           onPressed: () => showDialog<void>(
             context: context,
             builder: (dialogContext) {
               final controller = TextEditingController();
               return AlertDialog(
-                title: const Text('Add Contact'),
+                title: Text(AppLocalizations.of(context)!.addContact),
                 content: TextField(
                   controller: controller,
-                  decoration: const InputDecoration(
-                    labelText: 'Enter contact email',
+                  decoration: InputDecoration(
+                    labelText: AppLocalizations.of(context)!.email,
                   ),
                 ),
                 actions: [
@@ -53,7 +57,11 @@ class ContactsScreen extends StatelessWidget {
                             .addContact(controller.text);
                         if (context.mounted) {
                           ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Contact added')),
+                            SnackBar(
+                              content: Text(
+                                AppLocalizations.of(context)!.contactAdded,
+                              ),
+                            ),
                           );
                         }
                       } catch (err) {
@@ -64,15 +72,12 @@ class ContactsScreen extends StatelessWidget {
                         }
                       }
                     },
-                    child: const Text('Add'),
+                    child: Text(AppLocalizations.of(context)!.add),
                   ),
                 ],
               );
             },
           ),
-          shape: const CircleBorder(),
-          tooltip: 'Add Contact',
-          child: const Icon(Icons.add),
         ),
       ),
     );
@@ -116,9 +121,9 @@ class _ContactsScreen extends StatelessWidget {
                   context: context,
                   builder: (dialogContext) {
                     return AlertDialog(
-                      title: const Text('Remove Contact'),
-                      content: const Text(
-                        'Are you sure you want to remove this contact?',
+                      title: Text(AppLocalizations.of(context)!.removeContact),
+                      content: Text(
+                        AppLocalizations.of(context)!.removeContactConfirmation,
                       ),
                       actions: [
                         TextButton(
@@ -130,8 +135,11 @@ class _ContactsScreen extends StatelessWidget {
                                   .removeContact(contact.id);
                               if (context.mounted) {
                                 ScaffoldMessenger.of(context).showSnackBar(
-                                  const SnackBar(
-                                    content: Text('Contact removed'),
+                                  SnackBar(
+                                    content: Text(
+                                      AppLocalizations.of(context)!
+                                          .contactRemoved,
+                                    ),
                                   ),
                                 );
                               }
@@ -145,16 +153,16 @@ class _ContactsScreen extends StatelessWidget {
                               }
                             }
                           },
-                          child: const Text(
-                            'Yes',
-                            style: TextStyle(color: Colors.red),
+                          child: Text(
+                            AppLocalizations.of(context)!.yes,
+                            style: const TextStyle(color: Colors.red),
                           ),
                         ),
                         TextButton(
                           onPressed: () {
                             Navigator.of(dialogContext).pop();
                           },
-                          child: const Text('No'),
+                          child: Text(AppLocalizations.of(context)!.no),
                         ),
                       ],
                     );
@@ -184,9 +192,9 @@ class _SearchBarDelegate extends SliverPersistentHeaderDelegate {
       padding: const EdgeInsets.all(8),
       color: Theme.of(context).scaffoldBackgroundColor,
       child: TextField(
-        decoration: const InputDecoration(
-          hintText: 'Search Contacts',
-          prefixIcon: Icon(Icons.search),
+        decoration: InputDecoration(
+          hintText: AppLocalizations.of(context)!.searchContacts,
+          prefixIcon: const Icon(Icons.search),
         ),
         onChanged: onChanged,
       ),

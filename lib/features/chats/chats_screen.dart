@@ -3,10 +3,12 @@ import 'package:cynk/features/auth/auth_cubit.dart';
 import 'package:cynk/features/chats/classes/chat.dart';
 import 'package:cynk/features/chats/cubits/chats_cubit.dart';
 import 'package:cynk/features/widgets.dart';
+import 'package:cynk/main.dart';
 import 'package:cynk/routes/routes.dart';
 import 'package:cynk/utils/date_format.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 
 class ChatsScreen extends StatelessWidget {
   const ChatsScreen({super.key});
@@ -14,15 +16,21 @@ class ChatsScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Chats')),
+      appBar: AppBar(
+        title: Text(AppLocalizations.of(context)!.chats),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.language),
+            onPressed: () => App.changeLocale(context),
+          ),
+        ],
+      ),
       body: BlocBuilder<ChatsCubit, ChatsState>(
         builder: (context, state) {
           return switch (state) {
             ChatsLoading() => const Center(child: CircularProgressIndicator()),
-            ChatsEmpty() => const Center(
-                child: Text(
-                  'No chats yet, start a new one by tapping on Contacts',
-                ),
+            ChatsEmpty() => Center(
+                child: Text(AppLocalizations.of(context)!.noChats),
               ),
             ChatsError(:final error) => Center(child: Text(error)),
             ChatsLoaded(:final chats) => ListView.builder(
@@ -58,7 +66,7 @@ class ChatsScreen extends StatelessWidget {
               ),
             ),
             ListTile(
-              title: const Text('Profile'),
+              title: Text(AppLocalizations.of(context)!.profile),
               leading: const Icon(Icons.person),
               onTap: () {
                 Navigator.pop(context);
@@ -66,7 +74,7 @@ class ChatsScreen extends StatelessWidget {
               },
             ),
             ListTile(
-              title: const Text('Contacts'),
+              title: Text(AppLocalizations.of(context)!.contacts),
               leading: const Icon(Icons.people),
               onTap: () {
                 Navigator.pop(context);
@@ -74,7 +82,10 @@ class ChatsScreen extends StatelessWidget {
               },
             ),
             ListTile(
-              title: const Text('Logout', style: TextStyle(color: Colors.red)),
+              title: Text(
+                AppLocalizations.of(context)!.logout,
+                style: const TextStyle(color: Colors.red),
+              ),
               leading: const Icon(Icons.logout, color: Colors.red),
               onTap: () => context.read<AuthCubit>().signOut(),
             ),
@@ -120,7 +131,9 @@ class ChatEntry extends StatelessWidget {
             // user name + last message
             switch (chat) {
           PrivateChat(:final otherUser) => TrimmedText(
-              text: (chat.lastMessage.sender == otherUser.id ? '' : 'You: ') +
+              text: (chat.lastMessage.sender == otherUser.id
+                      ? ''
+                      : AppLocalizations.of(context)!.sentByYou) +
                   chat.lastMessage.message.replaceAll('\n', ''),
             ),
           GroupChat(:final members) => TrimmedText(

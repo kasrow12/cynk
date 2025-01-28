@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:cynk/features/data/cynk_user.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
 class TrimmedText extends StatelessWidget {
@@ -93,7 +94,9 @@ class UserItem extends StatelessWidget {
     return CynkTile(
       photoUrl: user.photoUrl,
       name: user.name,
-      subtitle: 'widziano ${timeago.format(user.lastSeen, locale: 'pl')}',
+      subtitle: AppLocalizations.of(context)!.lastSeen(
+        timeago.format(user.lastSeen),
+      ),
       onTap: onTap,
     );
   }

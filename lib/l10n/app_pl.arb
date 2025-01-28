@@ -1,0 +1,102 @@
+{
+    "@@locale": "pl",
+    "chats": "Czaty",
+    "noChats": "Brak czatów, kliknij przycisk +, aby rozpocząć nowy czat",
+    "profile": "Profil",
+    "contacts": "Kontakty",
+    "logout": "Wyloguj się",
+    "sentByYou": "Ty: ",
+    "message": "Wiadomość",
+    "send": "Wyślij",
+    "sendPhoto": "Wyślij zdjęcie",
+    "searchContacts": "Szukaj kontaktów",
+    "editName": "Edytuj nazwę",
+    "photoUpdated": "Zdjęcie profilowe zaktualizowane pomyślnie",
+    "photoUpdateFail": "Nie udało się zaktualizować zdjęcia profilowego: {error}",
+    "@photoUpdateFail": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "save": "Zapisz",
+    "cancel": "Anuluj",
+    "username": "Nazwa użytkownika",
+    "changePhoto": "Zmień zdjęcie profilowe",
+    "error": "Błąd: {error}",
+    "@error": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "nameTooShort": "Nazwa użytkownika musi mieć co najmniej 3 znaki",
+    "nameTooLong": "Nazwa użytkownika musi mieć co najwyżej {num} znaków",
+    "@nameTooLong": {
+        "placeholders": {
+            "num": {
+                "type": "int"
+            }
+        }
+    },
+    "nameUpdated": "Nazwa użytkownika zaktualizowana pomyślnie",
+    "openSettings": "Otwórz ustawienia",
+    "storagePermission": "Nadaj uprawnienia do pamięci urządzenia w ustawieniach, aby pobierać obrazy",
+    "storagePermissionDenied": "Odmówiono uprawnienia do pamięci urządzenia",
+    "storagePermissionRequired": "Wymagane uprawnienia do pamięci urządzenia",
+    "downloadFailed": "Nie udało się pobrać zdjęcia: {error}",
+    "@downloadFailed": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "imageDownloaded": "Zdjęcie pobrane do {path}",
+    "@imageDownloaded": {
+        "placeholders": {
+            "path": {
+                "type": "String"
+            }
+        }
+    },
+    "noAccessToStorage": "Nie można uzyskać dostępu do katalogu pamięci",
+    "removeContact": "Usuń kontakt",
+    "signUp": "Zarejestruj się",
+    "signIn": "Zaloguj się",
+    "email": "Email",
+    "password": "Hasło",
+    "profilePhoto": "Zdjęcie profilowe",
+    "invalidEmail": "Wprowadź poprawny adres email",
+    "invalidUsername": "Wprowadź poprawną nazwę użytkownika",
+    "or": "lub",
+    "backToSignIn": "Powrót do logowania",
+    "passwordTooShort": "Hasło musi mieć co najmniej {num} znaków",
+    "@passwordTooShort": {
+        "placeholders": {
+            "num": {
+                "type": "int"
+            }
+        }
+    },
+    "passwordEmpty": "Hasło nie może być puste",
+    "signInWithGoogle": "Zaloguj się za pomocą Google",
+    "noContacts": "Brak kontaktów",
+    "addContact": "Dodaj kontakt",
+    "contactAdded": "Kontakt dodany pomyślnie",
+    "add": "Dodaj",
+    "removeContactConfirmation": "Czy na pewno chcesz usunąć ten kontakt?",
+    "contactRemoved": "Kontakt usunięty pomyślnie",
+    "yes": "Tak",
+    "no": "Nie",
+    "lastSeen": "widziano {time}",
+    "@lastSeen": {
+        "placeholders": {
+            "time": {
+                "type": "String"
+            }
+        }
+    }
+}

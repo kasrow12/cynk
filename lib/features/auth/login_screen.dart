@@ -1,5 +1,7 @@
 import 'package:cynk/features/auth/auth_cubit.dart';
+import 'package:cynk/main.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:provider/provider.dart';
 
 class LoginScreen extends StatefulWidget {
@@ -32,6 +34,12 @@ class _LoginScreenState extends State<LoginScreen> {
       appBar: AppBar(
         title: const Text('Cynk'),
         leading: const Icon(Icons.chat),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.language),
+            onPressed: () => App.changeLocale(context),
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Center(
@@ -41,19 +49,20 @@ class _LoginScreenState extends State<LoginScreen> {
               width: 400,
               child: Form(
                 key: formKey,
-                // autovalidateMode: AutovalidateMode.onUserInteraction,
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Text(
-                      'Sign in',
-                      style:
-                          TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                    Text(
+                      AppLocalizations.of(context)!.signIn,
+                      style: const TextStyle(
+                        fontSize: 24,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
                     const SizedBox(height: 32),
                     TextFormField(
-                      decoration: const InputDecoration(
-                        labelText: 'Email address',
+                      decoration: InputDecoration(
+                        labelText: AppLocalizations.of(context)!.email,
                       ),
                       controller: email,
                       textInputAction: TextInputAction.next,
@@ -61,7 +70,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         if (value == null ||
                             value.isEmpty ||
                             !value.contains('@')) {
-                          return 'Please enter valid email address';
+                          return AppLocalizations.of(context)!.invalidEmail;
                         }
                         return null;
                       },
@@ -69,15 +78,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     ),
                     const SizedBox(height: 16),
                     TextFormField(
-                      decoration: const InputDecoration(
-                        labelText: 'Password',
+                      decoration: InputDecoration(
+                        labelText: AppLocalizations.of(context)!.password,
                       ),
                       controller: password,
                       obscureText: true,
                       textInputAction: TextInputAction.done,
                       validator: (value) {
                         if (value == null || value.isEmpty) {
-                          return 'Please enter your password';
+                          return AppLocalizations.of(context)!.passwordEmpty;
                         }
                         return null;
                       },
@@ -98,14 +107,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 8),
                     OutlinedButton(
                       onPressed: authCubit.signInWithGoogle,
-                      child: const Text('Sign in with Google'),
+                      child:
+                          Text(AppLocalizations.of(context)!.signInWithGoogle),
                     ),
                     const SizedBox(height: 16),
-                    const Text('or'),
+                    Text(AppLocalizations.of(context)!.or),
                     const SizedBox(height: 16),
                     OutlinedButton(
                       onPressed: authCubit.moveToSignUp,
-                      child: const Text('Sign up'),
+                      child: Text(AppLocalizations.of(context)!.signUp),
                     ),
                     const SizedBox(height: 32),
                   ],
@@ -133,7 +143,7 @@ class _SignInButton extends StatelessWidget {
     return FilledButton.tonal(
       onPressed: enabled ? onSignIn : null,
       child: enabled
-          ? const Text('Sign in')
+          ? Text(AppLocalizations.of(context)!.signIn)
           : const SizedBox.square(
               dimension: 16,
               child: CircularProgressIndicator(strokeWidth: 2),

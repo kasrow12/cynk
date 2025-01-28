@@ -9,6 +9,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:image_picker/image_picker.dart';
 
 class ChatScreen extends StatelessWidget {
@@ -38,7 +39,8 @@ class ChatScreen extends StatelessWidget {
               chat: chats.firstWhere((chat) => chat.id == chatId),
             ),
           ChatsError(:final error) => Center(child: Text(error)),
-          ChatsEmpty() => const Center(child: Text('Error: Chat not found')),
+          ChatsEmpty() =>
+            Center(child: Text(AppLocalizations.of(context)!.noChats)),
         };
       },
     );
@@ -189,7 +191,7 @@ class _ChatScreenContentState extends State<ChatScreenContent> {
                     focusNode: _focusNode,
                     controller: _messageController,
                     decoration: InputDecoration(
-                      hintText: 'Message',
+                      hintText: AppLocalizations.of(context)!.message,
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                       ),
@@ -207,6 +209,7 @@ class _ChatScreenContentState extends State<ChatScreenContent> {
                     IconButton(
                       icon: const Icon(Icons.photo),
                       onPressed: _isPhotoMessage ? null : _onImageSelected,
+                      tooltip: AppLocalizations.of(context)!.sendPhoto,
                     ),
                     if (_isUploading)
                       const SizedBox(
@@ -220,6 +223,7 @@ class _ChatScreenContentState extends State<ChatScreenContent> {
                 IconButton(
                   icon: const Icon(Icons.send),
                   onPressed: _onSubmitted,
+                  tooltip: AppLocalizations.of(context)!.send,
                 ),
               ],
             ),

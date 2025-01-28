@@ -3,12 +3,14 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_gen/gen_l10n/app_localizations.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:photo_view/photo_view.dart';
 import 'package:universal_html/html.dart' as html;
 
 Future<void> downloadImage(String imageUrl, BuildContext context) async {
+  final localizations = AppLocalizations.of(context)!;
   try {
     final uri = Uri.parse(imageUrl);
     final originalFileName = uri.pathSegments.last;
@@ -18,7 +20,7 @@ Future<void> downloadImage(String imageUrl, BuildContext context) async {
     }
 
     if (kIsWeb) {
-      final response = await Dio().get(
+      final response = await Dio().get<List<int>>(
         imageUrl,
         options: Options(responseType: ResponseType.bytes),
       );
@@ -46,18 +48,20 @@ Future<void> downloadImage(String imageUrl, BuildContext context) async {
               final shouldOpenSettings = await showDialog<bool>(
                 context: context,
                 builder: (context) => AlertDialog(
-                  title: const Text('Storage Permission Required'),
-                  content: const Text(
-                    'Please grant storage permission from settings to download images.',
+                  title: Text(
+                    localizations.storagePermissionRequired,
+                  ),
+                  content: Text(
+                    localizations.storagePermission,
                   ),
                   actions: [
                     TextButton(
                       onPressed: () => Navigator.pop(context, false),
-                      child: const Text('Cancel'),
+                      child: Text(localizations.cancel),
                     ),
                     TextButton(
                       onPressed: () => Navigator.pop(context, true),
-                      child: const Text('Open Settings'),
+                      child: Text(localizations.openSettings),
                     ),
                   ],
                 ),
@@ -68,7 +72,7 @@ Future<void> downloadImage(String imageUrl, BuildContext context) async {
             }
             return;
           }
-          throw Exception('Storage permission denied');
+          throw Exception(localizations.storagePermissionDenied);
         }
       }
 
@@ -81,7 +85,7 @@ Future<void> downloadImage(String imageUrl, BuildContext context) async {
       }
 
       if (directory == null) {
-        throw Exception('Could not access storage directory');
+        throw Exception(localizations.noAccessToStorage);
       }
 
       final filePath = '${directory.path}/$fileName';
@@ -93,14 +97,18 @@ Future<void> downloadImage(String imageUrl, BuildContext context) async {
 
       if (context.mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Image downloaded to ${directory.path}')),
+          SnackBar(
+            content: Text(localizations.imageDownloaded(filePath)),
+          ),
         );
       }
     }
   } catch (err) {
     if (context.mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to download image: $err')),
+        SnackBar(
+          content: Text(localizations.downloadFailed(err.toString())),
+        ),
       );
     }
   }

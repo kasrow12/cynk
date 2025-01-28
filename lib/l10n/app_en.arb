@@ -1,0 +1,102 @@
+{
+    "@@locale": "en",
+    "chats": "Chats",
+    "noChats": "No chats, click the + button to start a new chat",
+    "profile": "Profile",
+    "contacts": "Contacts",
+    "logout": "Logout",
+    "sentByYou": "You: ",
+    "message": "Message",
+    "send": "Send",
+    "sendPhoto": "Send photo",
+    "searchContacts": "Search contacts",
+    "editName": "Edit username",
+    "photoUpdated": "Photo updated successfully",
+    "photoUpdateFail": "Failed to update photo: {error}",
+    "@photoUpdateFail": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "save": "Save",
+    "cancel": "Cancel",
+    "username": "Username",
+    "changePhoto": "Change photo",
+    "error": "Error: {error}",
+    "@error": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "nameTooShort": "Name must be at least 3 characters long",
+    "nameTooLong": "Name must be at most {num} characters long",
+    "@nameTooLong": {
+        "placeholders": {
+            "num": {
+                "type": "int"
+            }
+        }
+    },
+    "nameUpdated": "Name updated successfully",
+    "openSettings": "Open settings",
+    "storagePermission": "Please grant storage permission from settings to download images",
+    "storagePermissionDenied": "Storage permission denied",
+    "storagePermissionRequired": "Storage permission required",
+    "downloadFailed": "Failed to download image: {error}",
+    "@downloadFailed": {
+        "placeholders": {
+            "error": {
+                "type": "String"
+            }
+        }
+    },
+    "imageDownloaded": "Image downloaded to {path}",
+    "@imageDownloaded": {
+        "placeholders": {
+            "path": {
+                "type": "String"
+            }
+        }
+    },
+    "noAccessToStorage": "Could not access storage directory",
+    "removeContact": "Remove contact",
+    "signUp": "Sign up",
+    "signIn": "Sign in",
+    "email": "Email",
+    "password": "Password",
+    "profilePhoto": "Profile photo",
+    "invalidEmail": "Please enter valid email address",
+    "invalidUsername": "Please enter valid username",
+    "or": "or",
+    "backToSignIn": "Back to sign in",
+    "passwordTooShort": "Password must be at least {num} characters long",
+    "@passwordTooShort": {
+        "placeholders": {
+            "num": {
+                "type": "int"
+            }
+        }
+    },
+    "passwordEmpty": "Password cannot be empty",
+    "signInWithGoogle": "Sign in with Google",
+    "noContacts": "No contacts",
+    "addContact": "Add contact",
+    "contactAdded": "Contact added successfully",
+    "add": "Add",
+    "removeContactConfirmation": "Are you sure you want to remove this contact?",
+    "contactRemoved": "Contact removed successfully",
+    "yes": "Yes",
+    "no": "No",
+    "lastSeen": "Last seen {time}",
+    "@lastSeen": {
+        "placeholders": {
+            "time": {
+                "type": "String"
+            }
+        }
+    }
+}
