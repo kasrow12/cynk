@@ -1,7 +1,7 @@
 {
     "@@locale": "pl",
     "chats": "Czaty",
-    "noChats": "Brak czatów, kliknij przycisk +, aby rozpocząć nowy czat",
+    "noChats": "Brak czatów, kliknij na kontakt, aby rozpocząć rozmowę",
     "profile": "Profil",
     "contacts": "Kontakty",
     "logout": "Wyloguj się",

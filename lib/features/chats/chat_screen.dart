@@ -30,6 +30,9 @@ class ChatScreen extends StatelessWidget {
             context.read<ChatsCubit>().createPrivateChat(chatId);
             return const Center(child: CircularProgressIndicator());
           }
+        } else if (state is ChatsEmpty) {
+          context.read<ChatsCubit>().createPrivateChat(chatId);
+          return const Center(child: CircularProgressIndicator());
         }
 
         return switch (state) {

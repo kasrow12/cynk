@@ -21,6 +21,11 @@ class ChatsCubit extends Cubit<ChatsState> {
 
     _chatsSubscription = db.getChats(userId).listen(
       (chats) {
+        if (chats.isEmpty) {
+          emit(ChatsEmpty());
+          return;
+        }
+
         emit(ChatsLoaded(userId, chats));
       },
       onError: (Object error) {

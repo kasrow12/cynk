@@ -1,7 +1,7 @@
 {
     "@@locale": "en",
     "chats": "Chats",
-    "noChats": "No chats, click the + button to start a new chat",
+    "noChats": "No chats, click on a contact to start chatting",
     "profile": "Profile",
     "contacts": "Contacts",
     "logout": "Logout",
