@@ -1,17 +1,32 @@
 import 'dart:async';
 
 import 'package:cynk/features/auth/auth_service.dart';
+import 'package:cynk/features/data/firestore_data_source.dart';
+import 'package:cynk/utils/constants.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:image_picker/image_picker.dart';
 
 class AuthCubit extends Cubit<AuthState> {
-  AuthCubit({required this.authService}) : super(authService.stateFromAuth) {
+  AuthCubit({required this.authService, required this.dataSource})
+      : super(authService.stateFromAuth) {
     _authStateSubscription = authService.isSignedInStream.listen((isSignedIn) {
       emit(authService.stateFromAuth);
+
+      if (isSignedIn) {
+        dataSource.updateLastSeen(authService.currentUser!.uid);
+      }
+    });
+
+    Timer.periodic(const Duration(seconds: LAST_SEEN_TIMER_SECONDS), (_) {
+      if (authService.isSignedIn) {
+        dataSource.updateLastSeen(authService.currentUser!.uid);
+      }
     });
   }
 
   final AuthService authService;
+  final FirestoreDataSource dataSource;
   StreamSubscription<bool>? _authStateSubscription;
 
   Future<void> signInWithGoogle() async {
@@ -21,25 +36,24 @@ class AuthCubit extends Cubit<AuthState> {
       final result = await authService.signInWithGoogle();
 
       switch (result) {
-        case SignInResult.success:
+        case AuthResult.success:
           emit(authService.stateFromAuth);
-          break;
-        case SignInResult.networkError:
+        case AuthResult.networkError:
           emit(SignedOutState(error: 'Network error'));
-          break;
-        case SignInResult.userNotFound:
-        case SignInResult.wrongPassword:
-        case SignInResult.invalidEmail:
+        case AuthResult.popupClosedByUser:
+          emit(SignedOutState(error: 'Popup closed by user'));
+        case _:
           emit(SignedOutState(error: 'Other error'));
-          break;
       }
-    } catch (e) {
-      emit(SignedOutState(error: 'Error: $e'));
+    } catch (err) {
+      emit(SignedOutState(error: 'Error: $err'));
     }
   }
 
-  Future<void> signInWithEmail(
-      {required String email, required String password}) async {
+  Future<void> signInWithEmail({
+    required String email,
+    required String password,
+  }) async {
     emit(SigningInState());
 
     try {
@@ -49,30 +63,49 @@ class AuthCubit extends Cubit<AuthState> {
       );
 
       switch (result) {
-        case SignInResult.success:
+        case AuthResult.success:
           emit(authService.stateFromAuth);
-          break;
-        case SignInResult.invalidEmail:
+        case AuthResult.invalidEmail:
           emit(SignedOutState(error: 'Invalid email'));
-          break;
-        case SignInResult.userNotFound:
+        case AuthResult.userNotFound:
           emit(SignedOutState(error: 'User not found'));
-          break;
-        case SignInResult.wrongPassword:
+        case AuthResult.wrongPassword:
           emit(SignedOutState(error: 'Wrong password'));
-          break;
-        case SignInResult.networkError:
+        case AuthResult.networkError:
           emit(SignedOutState(error: 'Network error'));
-          break;
+        case _:
+          emit(SignedOutState(error: 'Other error'));
       }
-    } catch (e) {
-      emit(SignedOutState(error: 'Error: $e'));
+    } catch (err) {
+      emit(SignedOutState(error: 'Error: $err'));
     }
   }
 
-  Future<void> signUpWithEmail(
-      {required String email, required String password}) async {
-    emit(SigningInState());
+  Future<void> createAccount({
+    required String email,
+    required String username,
+    required XFile? photo,
+  }) async {
+    try {
+      return dataSource.createAccount(
+        userId: authService.currentUser!.uid,
+        email: email,
+        username: username,
+        photo: photo,
+      );
+    } catch (err) {
+      emit(SigningUpScreenState(error: 'Error: $err'));
+    }
+    emit(authService.stateFromAuth);
+  }
+
+  Future<void> signUpWithEmail({
+    required String email,
+    required String password,
+    required String username,
+    required XFile? photo,
+  }) async {
+    emit(SingingUpState());
 
     try {
       final result = await authService.signUpWithEmail(
@@ -81,19 +114,30 @@ class AuthCubit extends Cubit<AuthState> {
       );
 
       switch (result) {
-        case SignUpResult.success:
-          emit(authService.stateFromAuth);
-          break;
-        case SignUpResult.emailAlreadyInUse:
-          emit(SignedOutState(error: 'Email already in use'));
-          break;
-        case SignUpResult.networkError:
-          emit(SignedOutState(error: 'Network error'));
-          break;
+        case AuthResult.success:
+          await createAccount(
+            email: email,
+            username: username,
+            photo: photo,
+          );
+        case AuthResult.emailAlreadyInUse:
+          emit(SigningUpScreenState(error: 'Email already in use'));
+        case AuthResult.networkError:
+          emit(SigningUpScreenState(error: 'Network error'));
+        case AuthResult.weakPassword:
+          emit(SigningUpScreenState(error: 'Weak password'));
+        case AuthResult.invalidEmail:
+          emit(SigningUpScreenState(error: 'Invalid email'));
+        case _:
+          emit(SigningUpScreenState(error: 'Other error'));
       }
-    } catch (e) {
-      emit(SignedOutState(error: 'Error: $e'));
+    } catch (err) {
+      emit(SigningUpScreenState(error: 'Error: $err'));
     }
+  }
+
+  Future<void> moveToSignUp() async {
+    emit(SigningUpScreenState());
   }
 
   Future<void> signOut() async {
@@ -114,7 +158,10 @@ extension on AuthService {
       isSignedIn ? SignedInState(userId: currentUser!.uid) : SignedOutState();
 }
 
-sealed class AuthState extends Equatable {}
+sealed class AuthState extends Equatable {
+  @override
+  List<Object?> get props => [];
+}
 
 class SignedInState extends AuthState {
   SignedInState({required this.userId});
@@ -122,13 +169,10 @@ class SignedInState extends AuthState {
   final String userId;
 
   @override
-  List<Object> get props => [userId];
+  List<Object?> get props => [userId];
 }
 
-class SigningInState extends AuthState {
-  @override
-  List<Object> get props => [];
-}
+class SigningInState extends AuthState {}
 
 class SignedOutState extends AuthState {
   SignedOutState({this.error});
@@ -138,3 +182,14 @@ class SignedOutState extends AuthState {
   @override
   List<Object?> get props => [error];
 }
+
+class SigningUpScreenState extends AuthState {
+  SigningUpScreenState({this.error});
+
+  final String? error;
+
+  @override
+  List<Object?> get props => [error];
+}
+
+class SingingUpState extends AuthState {}

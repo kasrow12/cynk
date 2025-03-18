@@ -1,10 +1,11 @@
-import 'package:cynk/features/data/firestore_data_source.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cynk/features/auth/auth_cubit.dart';
 import 'package:cynk/features/auth/auth_gate.dart';
 import 'package:cynk/features/auth/auth_service.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:flutter/material.dart';
+import 'package:cynk/features/data/firestore_data_source.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
 
@@ -22,14 +23,16 @@ class CynkApp extends StatelessWidget {
             firebase: FirebaseAuth.instance,
           ),
         ),
-        BlocProvider(
-          create: (context) => AuthCubit(
-            authService: context.read(),
-          ),
-        ),
         Provider(
           create: (context) => FirestoreDataSource(
             db: FirebaseFirestore.instance,
+            storage: FirebaseStorage.instance,
+          ),
+        ),
+        BlocProvider(
+          create: (context) => AuthCubit(
+            authService: context.read(),
+            dataSource: context.read(),
           ),
         ),
       ],

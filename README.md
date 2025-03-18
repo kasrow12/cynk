@@ -3,9 +3,12 @@
 
 
 ## TODO
-- Login ui
-- Register ui
-- Adding contacts
-- Infinite scrolling (pagination of messages)
-- Last seen
+- Viewing profiles
 - Message read
+- Creation of group chats
+- intl
+- tests
+- push notifications
+- google sign in create account
+
+

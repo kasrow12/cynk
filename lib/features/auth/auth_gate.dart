@@ -1,7 +1,7 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cynk/features/auth/auth_cubit.dart';
-import 'package:cynk/features/data/chats_cubit.dart';
-import 'package:cynk/screens/login/login_screen.dart';
+import 'package:cynk/features/auth/login_screen.dart';
+import 'package:cynk/features/auth/register_screen.dart';
+import 'package:cynk/features/chats/cubits/chats_cubit.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:provider/provider.dart';
@@ -15,11 +15,17 @@ class AuthGate extends StatelessWidget {
     return BlocBuilder<AuthCubit, AuthState>(
       builder: (context, state) {
         return switch (state) {
-          SignedInState(:final userId) => BlocProvider(
-              create: (context) =>
-                  ChatsCubit(db: FirebaseFirestore.instance)..loadChats(userId),
+          SignedInState(:final userId) => MultiProvider(
+              providers: [
+                BlocProvider(
+                  create: (context) =>
+                      ChatsCubit(db: context.read(), userId: userId)
+                        ..loadChats(),
+                ),
+              ],
               child: child,
             ),
+          SigningUpScreenState() || SingingUpState() => const RegisterScreen(),
           SigningInState() || SignedOutState() => const LoginScreen(),
         };
       },

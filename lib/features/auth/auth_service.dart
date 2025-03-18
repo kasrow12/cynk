@@ -1,18 +1,15 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
-enum SignInResult {
+enum AuthResult {
   success,
   invalidEmail,
   userNotFound,
   wrongPassword,
   networkError,
-}
-
-enum SignUpResult {
-  success,
+  popupClosedByUser,
+  weakPassword,
   emailAlreadyInUse,
-  networkError,
 }
 
 class AuthService {
@@ -29,70 +26,78 @@ class AuthService {
 
   Future<void> signOut() => firebase.signOut();
 
-  Future<SignInResult> signInWithEmail(
-      {required String email, required String password}) async {
+  Future<AuthResult> signInWithEmail({
+    required String email,
+    required String password,
+  }) async {
     try {
       await firebase.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      return SignInResult.success;
+      return AuthResult.success;
     } on FirebaseAuthException catch (e) {
       switch (e.code) {
         case 'invalid-email':
-          return SignInResult.invalidEmail;
+          return AuthResult.invalidEmail;
         case 'user-not-found':
-          return SignInResult.userNotFound;
+          return AuthResult.userNotFound;
         case 'wrong-password':
-          return SignInResult.wrongPassword;
+          return AuthResult.wrongPassword;
         default:
-          return SignInResult.networkError;
+          return AuthResult.networkError;
       }
     }
   }
 
-  Future<SignUpResult> signUpWithEmail(
-      {required String email, required String password}) async {
+  Future<AuthResult> signUpWithEmail({
+    required String email,
+    required String password,
+  }) async {
     try {
       await firebase.createUserWithEmailAndPassword(
         email: email,
         password: password,
       );
 
-      return SignUpResult.success;
+      return AuthResult.success;
     } on FirebaseAuthException catch (e) {
       switch (e.code) {
         case 'email-already-in-use':
-          return SignUpResult.emailAlreadyInUse;
+          return AuthResult.emailAlreadyInUse;
+        case 'weak-password':
+          return AuthResult.weakPassword;
+        case 'invalid-email':
+          return AuthResult.invalidEmail;
         default:
-          return SignUpResult.networkError;
+          return AuthResult.networkError;
       }
     }
   }
 
-  Future<SignInResult> signInWithGoogle() async {
-    final GoogleSignInAccount? googleUser = await GoogleSignIn(
-      clientId:
-          "410051796583-knb1m6u2jdt4h979skrtu7892a38foac.apps.googleusercontent.com",
-    ).signIn();
+  Future<AuthResult> signInWithGoogle() async {
+    try {
+      final googleUser = await GoogleSignIn(
+        clientId:
+            '410051796583-knb1m6u2jdt4h979skrtu7892a38foac.apps.googleusercontent.com',
+      ).signIn();
 
-    final GoogleSignInAuthentication? googleAuth =
-        await googleUser?.authentication;
+      final googleAuth = await googleUser?.authentication;
 
-    final credential = GoogleAuthProvider.credential(
-      accessToken: googleAuth?.accessToken,
-      idToken: googleAuth?.idToken,
-    );
+      final credential = GoogleAuthProvider.credential(
+        accessToken: googleAuth?.accessToken,
+        idToken: googleAuth?.idToken,
+      );
 
-    final user = await firebase.signInWithCredential(credential);
+      await firebase.signInWithCredential(credential);
 
-    if (user.additionalUserInfo?.isNewUser == true) {
-      print("new user");
-    } else {
-      print("old user");
+      return AuthResult.success;
+    } catch (err) {
+      if (err.toString() == 'popup_closed') {
+        return AuthResult.popupClosedByUser;
+      }
+      return AuthResult.networkError;
     }
-
-    return SignInResult.success;
   }
 }

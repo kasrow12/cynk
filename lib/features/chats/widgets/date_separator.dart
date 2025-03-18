@@ -15,9 +15,9 @@ class DateSeparator extends StatelessWidget {
       padding: const EdgeInsets.symmetric(vertical: 10),
       child: Center(
         child: Text(
-          DateFormat('d MMMM').format(date),
+          DateFormat('d MMMM', Localizations.localeOf(context).languageCode)
+              .format(date),
           style: const TextStyle(
-            color: Colors.black54,
             fontSize: 12,
           ),
         ),
